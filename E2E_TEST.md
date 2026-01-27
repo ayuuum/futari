@@ -31,7 +31,7 @@ npx playwright install
 
 ### 3. 環境変数の設定
 
-`.env` ファイルまたは環境変数で以下を設定：
+プロジェクトルートに `.env` ファイルを作成し、以下を設定：
 
 ```bash
 # テスト対象のURL（本番環境またはローカル）
@@ -40,9 +40,14 @@ BASE_URL=https://your-app.vercel.app
 BASE_URL=http://localhost:8081
 
 # Supabase設定（テスト用のSupabaseプロジェクトを推奨）
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxxxxx
 ```
+
+**注意**: 
+- `.env` ファイルは自動的に読み込まれます（`playwright.config.ts`で`dotenv`を使用）
+- 環境変数は `EXPO_PUBLIC_` プレフィックスが必要です
+- テスト用のSupabaseプロジェクトを使用することを推奨します（本番データに影響を与えません）
 
 ## Web版テストの実行
 
@@ -150,6 +155,28 @@ GitHub Actionsで自動実行されます：
 - `waitFor` を使用した適切な待機処理
 
 ## トラブルシューティング
+
+### 環境変数が読み込まれない場合
+
+1. `.env` ファイルがプロジェクトルートに存在するか確認
+   ```bash
+   ls -la .env
+   ```
+
+2. `.env` ファイルの内容を確認（値が正しく設定されているか）
+   ```bash
+   cat .env
+   ```
+
+3. 環境変数の形式を確認
+   - `EXPO_PUBLIC_SUPABASE_URL` と `EXPO_PUBLIC_SUPABASE_ANON_KEY` が正しく設定されているか
+   - 値に余分なスペースや引用符がないか
+
+4. テスト実行時に環境変数が読み込まれているか確認
+   ```bash
+   # 環境変数を表示してからテストを実行
+   node -e "require('dotenv').config(); console.log(process.env.EXPO_PUBLIC_SUPABASE_URL)"
+   ```
 
 ### Playwrightのテストが失敗する場合
 

@@ -1,13 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 
 /**
  * E2Eテスト設定
  * 
  * 環境変数:
  * - BASE_URL: テスト対象のURL（デフォルト: http://localhost:8081）
- * - SUPABASE_URL: SupabaseプロジェクトのURL
- * - SUPABASE_ANON_KEY: Supabaseの匿名キー
+ * - EXPO_PUBLIC_SUPABASE_URL: SupabaseプロジェクトのURL
+ * - EXPO_PUBLIC_SUPABASE_ANON_KEY: Supabaseの匿名キー
  */
+
+// .envファイルを読み込む（プロジェクトルートから）
+config({ path: resolve(__dirname, '../../.env') });
+
 const baseURL = process.env.BASE_URL 
   || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
   || 'http://localhost:8081';
