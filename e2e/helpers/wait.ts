@@ -5,6 +5,29 @@ import { Page, expect } from '@playwright/test';
  */
 
 /**
+ * Expo Routerのルーティング形式を通常のパスに変換
+ * 例: /(auth)/signup -> /auth/signup
+ */
+export function normalizeExpoRoute(path: string): string {
+  return path.replace(/\(([^)]+)\)/g, '$1');
+}
+
+/**
+ * baseURLとパスを結合して完全なURLを生成
+ */
+export function buildFullUrl(page: Page, path: string): string {
+  const normalizedPath = normalizeExpoRoute(path);
+  if (normalizedPath.startsWith('http')) {
+    return normalizedPath;
+  }
+  // baseURLを取得
+  const context = page.context();
+  const options = (context as any)._options || {};
+  const baseUrl = options.baseURL || 'http://localhost:8081';
+  return `${baseUrl}${normalizedPath}`;
+}
+
+/**
  * 要素が表示されるまで待機
  */
 export async function waitForElement(

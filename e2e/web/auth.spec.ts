@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateTestUser, login, signup, logout, cleanupTestUser } from '../helpers/auth';
-import { waitForText, waitForNavigation } from '../helpers/wait';
+import { waitForText, waitForNavigation, buildFullUrl } from '../helpers/wait';
 
 test.describe('認証フロー', () => {
   let testUser: ReturnType<typeof generateTestUser>;
@@ -20,8 +20,14 @@ test.describe('認証フロー', () => {
     // オンボーディング画面をスキップ（既に完了していると仮定）
     // または、オンボーディング画面から新規登録に遷移
     
+    // #region agent log
+    const targetPath = '/(auth)/signup';
+    const fullUrl = buildFullUrl(page, targetPath);
+    fetch('http://127.0.0.1:7246/ingest/b07a51bf-3965-436c-a011-6643b54686d3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.spec.ts:24',message:'Before page.goto',data:{targetPath,fullUrl,pageUrl:page.url()},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    
     // 新規登録ページに移動
-    await page.goto('/(auth)/signup');
+    await page.goto(fullUrl);
     
     // フォームに入力
     await page.fill('input[placeholder="お名前"]', testUser.name);
@@ -79,7 +85,7 @@ test.describe('認証フロー', () => {
     }
     
     // ログインページに移動
-    await page.goto('/(auth)/login');
+    await page.goto(buildFullUrl(page, '/(auth)/login'));
     
     // ログイン情報を入力
     await page.fill('input[placeholder="メールアドレス"]', testUser.email);
@@ -119,7 +125,7 @@ test.describe('認証フロー', () => {
     
     // 2人目のユーザーで参加
     const user2 = generateTestUser();
-    await page.goto('/(auth)/join');
+    await page.goto(buildFullUrl(page, '/(auth)/join'));
     
     // 招待コードを入力
     await page.fill('input[placeholder="招待コード（6文字）"]', inviteCode);

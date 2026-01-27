@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test';
+import { buildFullUrl } from './wait';
 
 /**
  * 認証関連のヘルパー関数
@@ -26,8 +27,14 @@ export function generateTestUser(): TestUser {
  * ログイン処理
  */
 export async function login(page: Page, email: string, password: string): Promise<void> {
+  // #region agent log
+  const targetPath = '/(auth)/login';
+  const fullUrl = buildFullUrl(page, targetPath);
+  fetch('http://127.0.0.1:7246/ingest/b07a51bf-3965-436c-a011-6643b54686d3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'helpers/auth.ts:30',message:'Before login page.goto',data:{targetPath,fullUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
   // ログインページに移動
-  await page.goto('/(auth)/login');
+  await page.goto(fullUrl);
   
   // メールアドレスを入力
   await page.fill('input[placeholder="メールアドレス"]', email);
@@ -46,8 +53,14 @@ export async function login(page: Page, email: string, password: string): Promis
  * 新規登録処理
  */
 export async function signup(page: Page, user: TestUser): Promise<string> {
+  // #region agent log
+  const targetPath = '/(auth)/signup';
+  const fullUrl = buildFullUrl(page, targetPath);
+  fetch('http://127.0.0.1:7246/ingest/b07a51bf-3965-436c-a011-6643b54686d3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'helpers/auth.ts:50',message:'Before signup page.goto',data:{targetPath,fullUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
   // 新規登録ページに移動
-  await page.goto('/(auth)/signup');
+  await page.goto(fullUrl);
   
   // 名前を入力
   await page.fill('input[placeholder="お名前"]', user.name);
@@ -83,8 +96,14 @@ export async function joinWithInviteCode(
   inviteCode: string,
   user: TestUser
 ): Promise<void> {
+  // #region agent log
+  const targetPath = '/(auth)/join';
+  const fullUrl = buildFullUrl(page, targetPath);
+  fetch('http://127.0.0.1:7246/ingest/b07a51bf-3965-436c-a011-6643b54686d3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'helpers/auth.ts:87',message:'Before join page.goto',data:{targetPath,fullUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
   // 参加ページに移動
-  await page.goto('/(auth)/join');
+  await page.goto(fullUrl);
   
   // 招待コードを入力
   await page.fill('input[placeholder="招待コード（6文字）"]', inviteCode);
@@ -115,8 +134,14 @@ export async function joinWithInviteCode(
  * ログアウト処理
  */
 export async function logout(page: Page): Promise<void> {
+  // #region agent log
+  const targetPath = '/(tabs)/settings';
+  const fullUrl = buildFullUrl(page, targetPath);
+  fetch('http://127.0.0.1:7246/ingest/b07a51bf-3965-436c-a011-6643b54686d3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'helpers/auth.ts:135',message:'Before logout page.goto',data:{targetPath,fullUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
   // 設定タブに移動
-  await page.goto('/(tabs)/settings');
+  await page.goto(fullUrl);
   
   // ログアウトボタンをクリック
   await page.click('text=ログアウト');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateTestUser, signup, login } from '../helpers/auth';
-import { waitForNavigation, waitForLoadingToComplete } from '../helpers/wait';
+import { waitForNavigation, waitForLoadingToComplete, buildFullUrl } from '../helpers/wait';
 
 test.describe('設定フロー', () => {
   let testUser: ReturnType<typeof generateTestUser>;
@@ -24,7 +24,7 @@ test.describe('設定フロー', () => {
 
   test('プロフィール編集', async ({ page }) => {
     // 設定タブに移動
-    await page.goto('/(tabs)/settings');
+    await page.goto(buildFullUrl(page, '/(tabs)/settings'));
     await waitForLoadingToComplete(page);
     
     // プロフィール編集リンクまたはボタンをクリック

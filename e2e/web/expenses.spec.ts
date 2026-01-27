@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateTestUser, login, signup } from '../helpers/auth';
-import { waitForText, waitForNavigation, waitForLoadingToComplete } from '../helpers/wait';
+import { waitForText, waitForNavigation, waitForLoadingToComplete, buildFullUrl } from '../helpers/wait';
 import { generateTestExpense } from '../helpers/data';
 
 test.describe('家計管理フロー', () => {
@@ -26,7 +26,7 @@ test.describe('家計管理フロー', () => {
 
   test('支出の追加', async ({ page }) => {
     // 家計タブに移動
-    await page.goto('/(tabs)/expenses');
+    await page.goto(buildFullUrl(page, '/(tabs)/expenses'));
     await waitForLoadingToComplete(page);
     
     // 「支出を追加」ボタンまたはリンクをクリック
@@ -87,7 +87,7 @@ test.describe('家計管理フロー', () => {
 
   test('カテゴリフィルタ', async ({ page }) => {
     // 家計タブに移動
-    await page.goto('/(tabs)/expenses');
+    await page.goto(buildFullUrl(page, '/(tabs)/expenses'));
     await waitForLoadingToComplete(page);
     
     // カテゴリボタンをクリック（例: 食費）
@@ -113,7 +113,7 @@ test.describe('家計管理フロー', () => {
 
   test('月次サマリーの表示', async ({ page }) => {
     // 家計タブに移動
-    await page.goto('/(tabs)/expenses');
+    await page.goto(buildFullUrl(page, '/(tabs)/expenses'));
     await waitForLoadingToComplete(page);
     
     // 月次合計金額が表示されていることを確認

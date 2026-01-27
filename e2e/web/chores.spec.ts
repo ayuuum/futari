@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateTestUser, signup, login } from '../helpers/auth';
-import { waitForText, waitForNavigation, waitForLoadingToComplete } from '../helpers/wait';
+import { waitForText, waitForNavigation, waitForLoadingToComplete, buildFullUrl } from '../helpers/wait';
 import { generateTestChore } from '../helpers/data';
 
 test.describe('家事管理フロー', () => {
@@ -25,7 +25,7 @@ test.describe('家事管理フロー', () => {
 
   test('家事の追加', async ({ page }) => {
     // 家事タブに移動
-    await page.goto('/(tabs)/chores');
+    await page.goto(buildFullUrl(page, '/(tabs)/chores'));
     await waitForLoadingToComplete(page);
     
     // 「家事を追加」ボタンをクリック
@@ -63,7 +63,7 @@ test.describe('家事管理フロー', () => {
 
   test('家事の完了状態の切り替え', async ({ page }) => {
     // まず家事を追加
-    await page.goto('/(tabs)/chores');
+    await page.goto(buildFullUrl(page, '/(tabs)/chores'));
     await waitForLoadingToComplete(page);
     
     const chore = generateTestChore();

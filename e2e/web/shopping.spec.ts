@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateTestUser, signup, login } from '../helpers/auth';
-import { waitForText, waitForLoadingToComplete } from '../helpers/wait';
+import { waitForText, waitForLoadingToComplete, buildFullUrl } from '../helpers/wait';
 import { generateTestShoppingItem } from '../helpers/data';
 
 test.describe('買い物リストフロー', () => {
@@ -25,7 +25,7 @@ test.describe('買い物リストフロー', () => {
 
   test('アイテムの追加', async ({ page }) => {
     // 買い物タブに移動
-    await page.goto('/(tabs)/shopping');
+    await page.goto(buildFullUrl(page, '/(tabs)/shopping'));
     await waitForLoadingToComplete(page);
     
     // テストデータを生成
@@ -53,7 +53,7 @@ test.describe('買い物リストフロー', () => {
 
   test('購入済みマーク', async ({ page }) => {
     // 買い物タブに移動
-    await page.goto('/(tabs)/shopping');
+    await page.goto(buildFullUrl(page, '/(tabs)/shopping'));
     await waitForLoadingToComplete(page);
     
     // まずアイテムを追加
