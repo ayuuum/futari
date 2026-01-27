@@ -147,6 +147,7 @@ export default function ShoppingScreen() {
                     onChangeText={setNewItemName}
                     onSubmitEditing={addItem}
                     returnKeyType="done"
+                    testID="shopping-input"
                 />
                 <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.secondary }]} onPress={addItem}>
                     <Text style={styles.addButtonText}>+</Text>

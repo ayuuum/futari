@@ -1,4 +1,4 @@
-import { device, expect, element, by, waitFor } from 'detox';
+import { by, device, element, waitFor } from 'detox';
 
 describe('家計管理フロー', () => {
   beforeAll(async () => {
@@ -17,10 +17,10 @@ describe('家計管理フロー', () => {
     await element(by.text('家計')).tap();
 
     // 「支出を追加」ボタンまたはリンクをタップ
-    await waitFor(element(by.text('支出を追加')).or(element(by.id('add-expense-button'))))
+    await waitFor(element(by.id('add-expense-button')))
       .toBeVisible()
       .withTimeout(5000);
-    await element(by.text('支出を追加')).tap();
+    await element(by.id('add-expense-button')).tap();
 
     // 金額を入力
     await waitFor(element(by.placeholderText('金額')).or(element(by.id('amount-input'))))

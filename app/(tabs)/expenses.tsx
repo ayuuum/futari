@@ -93,7 +93,7 @@ export default function ExpensesScreen() {
     if (isLoading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={theme.primary} />
+                <ActivityIndicator size="large" color={theme.primary} testID="loading" />
             </View>
         );
     }
@@ -184,7 +184,7 @@ export default function ExpensesScreen() {
 
             {/* FAB */}
             <Link href="/expenses/add" asChild>
-                <TouchableOpacity style={styles.fab}>
+                <TouchableOpacity style={styles.fab} testID="add-expense-button">
                     <Text style={styles.fabText}>+</Text>
                 </TouchableOpacity>
             </Link>

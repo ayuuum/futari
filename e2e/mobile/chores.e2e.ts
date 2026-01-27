@@ -1,4 +1,4 @@
-import { device, expect, element, by, waitFor } from 'detox';
+import { by, device, element, waitFor } from 'detox';
 
 describe('家事管理フロー', () => {
   beforeAll(async () => {
@@ -14,19 +14,19 @@ describe('家事管理フロー', () => {
     await element(by.text('家事')).tap();
 
     // 「家事を追加」ボタンをタップ
-    await waitFor(element(by.text('家事を追加')).or(element(by.id('add-chore-button'))))
+    await waitFor(element(by.id('add-chore-button')))
       .toBeVisible()
       .withTimeout(5000);
-    await element(by.text('家事を追加')).tap();
+    await element(by.id('add-chore-button')).tap();
 
     // モーダルが表示されるまで待機
-    await waitFor(element(by.placeholderText('家事')).or(element(by.placeholderText('名前'))))
+    await waitFor(element(by.id('chore-name-input')))
       .toBeVisible()
       .withTimeout(5000);
 
     // 家事名を入力
     const choreName = `テスト家事${Date.now()}`;
-    await element(by.placeholderText('家事')).typeText(choreName);
+    await element(by.id('chore-name-input')).typeText(choreName);
 
     // カテゴリを選択
     await element(by.text('掃除')).tap();

@@ -2,9 +2,9 @@ import { ThemeColors } from '@/constants/themes';
 import { useTheme, useThemedStyles } from '@/contexts/ThemeContext';
 import {
   useAnniversaries,
+  useCalendarEvents,
   useChoreCompletionsThisWeek,
   useChores,
-  useCalendarEvents,
   useExpenses,
   useRecentExpenses,
   useSavingsGoals,
@@ -112,7 +112,7 @@ export default function HomeScreen() {
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <ActivityIndicator size="large" color={theme.primary} testID="loading" />
       </View>
     );
   }
@@ -191,7 +191,7 @@ export default function HomeScreen() {
           { href: '/report', emoji: '📊', label: '分析' },
         ].map((action, idx) => (
           <Link key={idx} href={action.href as any} asChild>
-            <TouchableOpacity style={styles.actionButtonSmall}>
+            <TouchableOpacity style={styles.actionButtonSmall} testID={action.label === '支出追加' ? 'add-expense-button' : undefined}>
               <Text style={styles.actionEmoji}>{action.emoji}</Text>
               <Text style={styles.actionTextSmall}>{action.label}</Text>
             </TouchableOpacity>

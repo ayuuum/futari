@@ -1,4 +1,4 @@
-import { device, expect, element, by, waitFor } from 'detox';
+import { by, device, element, waitFor } from 'detox';
 
 describe('認証フロー', () => {
   beforeAll(async () => {
@@ -17,7 +17,7 @@ describe('認証フロー', () => {
 
     // オンボーディング画面をスキップ（既に完了していると仮定）
     // または、新規登録画面に遷移
-    
+
     // 新規登録リンクをタップ
     await waitFor(element(by.text('新規登録')))
       .toBeVisible()
@@ -67,7 +67,7 @@ describe('認証フロー', () => {
     await element(by.text('ログイン')).tap();
 
     // ホーム画面に遷移するか、エラーメッセージが表示される
-    await waitFor(element(by.text('💑 Futari')))
+    await waitFor(element(by.text('おかえりなさい！')))
       .toBeVisible()
       .withTimeout(15000)
       .catch(() => {

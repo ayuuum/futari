@@ -144,7 +144,7 @@ export default function ChoresScreen() {
     if (isLoading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={theme.primary} />
+                <ActivityIndicator size="large" color={theme.primary} testID="loading" />
             </View>
         );
     }
@@ -255,6 +255,7 @@ export default function ChoresScreen() {
             <TouchableOpacity
                 style={[styles.addButton, { borderColor: theme.secondary }]}
                 onPress={() => setShowAddModal(true)}
+                testID="add-chore-button"
             >
                 <Text style={[styles.addButtonText, { color: theme.secondary }]}>+ 家事を追加</Text>
             </TouchableOpacity>
@@ -279,6 +280,7 @@ export default function ChoresScreen() {
                             value={addName}
                             onChangeText={setAddName}
                             autoCapitalize="none"
+                            testID="chore-name-input"
                         />
                         <Text style={styles.modalLabel}>カテゴリ</Text>
                         <View style={styles.modalChips}>

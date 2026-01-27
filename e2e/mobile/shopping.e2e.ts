@@ -1,4 +1,4 @@
-import { device, expect, element, by, waitFor } from 'detox';
+import { by, device, element, waitFor } from 'detox';
 
 describe('買い物リストフロー', () => {
   beforeAll(async () => {
@@ -15,10 +15,10 @@ describe('買い物リストフロー', () => {
 
     // アイテム名を入力
     const itemName = `テストアイテム${Date.now()}`;
-    await waitFor(element(by.placeholderText('買い物')).or(element(by.id('shopping-input'))))
+    await waitFor(element(by.id('shopping-input')))
       .toBeVisible()
       .withTimeout(5000);
-    await element(by.placeholderText('買い物')).typeText(itemName);
+    await element(by.id('shopping-input')).typeText(itemName);
 
     // 追加ボタンをタップ
     await element(by.text('追加')).tap();
