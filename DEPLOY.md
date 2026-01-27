@@ -6,41 +6,45 @@
 npm run build:web
 ```
 
-これで `web-build/` ディレクトリに静的サイトが生成されます。
+これで `dist/` ディレクトリに静的サイトが生成されます。
 
 ## 2. デプロイ先の選択
 
 ### Vercel（推奨・無料）
 
 1. [Vercel](https://vercel.com) にアカウント作成（GitHub 連携可）
-2. プロジェクトをインポート
-3. `web-build` をルートディレクトリに設定
-4. デプロイ
+2. プロジェクトをインポート（GitHub連携推奨）
+3. ビルド設定：
+   - **Framework Preset**: Other
+   - **Build Command**: `npm run build:web`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
+4. 環境変数を設定（後述）
+5. デプロイ
 
 **コマンドラインから**:
 ```bash
 npm install -g vercel
-cd web-build
 vercel --prod
 ```
+（プロジェクトルートから実行。`vercel.json`が自動的に認識されます）
 
 ### Netlify（無料）
 
 1. [Netlify](https://netlify.com) にアカウント作成
-2. ドラッグ&ドロップで `web-build` フォルダをアップロード
-3. または GitHub 連携で自動デプロイ
+2. ドラッグ&ドロップで `dist` フォルダをアップロード
+3. または GitHub 連携で自動デプロイ（`netlify.toml`を作成推奨）
 
 **コマンドラインから**:
 ```bash
 npm install -g netlify-cli
-cd web-build
-netlify deploy --prod
+netlify deploy --prod --dir=dist
 ```
 
 ### GitHub Pages（無料）
 
-1. GitHub リポジトリに `web-build` を push
-2. Settings → Pages で `web-build` をソースに設定
+1. GitHub リポジトリに `dist` を push（通常はGitHub Actionsで自動化）
+2. Settings → Pages で `dist` をソースに設定
 3. 自動で `https://yourusername.github.io/Futari` に公開
 
 ## 3. 環境変数の設定
@@ -91,3 +95,10 @@ npm run build:web
 
 - 環境変数が正しく設定されているか確認
 - Supabase の RLS ポリシーが正しく設定されているか確認
+
+### 404エラーが発生する場合
+
+- Vercelの場合：`vercel.json`がプロジェクトルートに配置されているか確認
+- 出力ディレクトリが`dist`に設定されているか確認
+- 環境変数（`EXPO_PUBLIC_SUPABASE_URL`、`EXPO_PUBLIC_SUPABASE_ANON_KEY`）が設定されているか確認
+- ブラウザの開発者ツール（Networkタブ）で、どのリソースが404になっているか確認
