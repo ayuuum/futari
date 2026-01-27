@@ -107,11 +107,26 @@ npm run test:e2e:mobile
 
 ### Web版テスト
 
-- `e2e/web/auth.spec.ts` - 認証フロー（新規登録、ログイン、招待コード参加）
+#### 基本テスト
+- `e2e/web/auth.spec.ts` - 認証フロー（新規登録、ログイン、招待コード参加、ログアウト）
 - `e2e/web/expenses.spec.ts` - 家計管理（支出追加、カテゴリフィルタ、月次サマリー）
 - `e2e/web/chores.spec.ts` - 家事管理（家事追加、完了状態の切り替え）
 - `e2e/web/shopping.spec.ts` - 買い物リスト（アイテム追加、購入済みマーク）
 - `e2e/web/settings.spec.ts` - 設定（プロフィール編集）
+
+#### 詳細テスト
+- `e2e/web/auth-detailed.spec.ts` - 認証の詳細テスト（バリデーション、エラーハンドリング、パスワード要件、重複メール）
+- `e2e/web/expenses-detailed.spec.ts` - 支出管理の詳細テスト（編集、削除、AI機能、共有設定切り替え）
+- `e2e/web/chores-detailed.spec.ts` - 家事管理の詳細テスト（編集、削除、担当者変更、AIアドバイス）
+- `e2e/web/shopping-detailed.spec.ts` - 買い物リストの詳細テスト（編集、削除、カテゴリ設定、価格設定）
+- `e2e/web/home.spec.ts` - ホーム画面のテスト（ダッシュボード、統計情報、タブナビゲーション）
+- `e2e/web/calendar.spec.ts` - カレンダーのテスト（イベント追加、月の切り替え）
+- `e2e/web/report.spec.ts` - レポートのテスト（月次レポート、AIサマリー、アドバイス、トレンド表示）
+- `e2e/web/recurring-expenses.spec.ts` - 固定費管理のテスト（追加、有効/無効切り替え）
+- `e2e/web/rulebook.spec.ts` - ルールブックのテスト（追加、確認、AI言い換え）
+- `e2e/web/savings.spec.ts` - 貯金目標のテスト（追加、進捗更新）
+- `e2e/web/settings-detailed.spec.ts` - 設定画面の詳細テスト（テーマ変更、カップル設定、負担割合、記念日、プライバシー）
+- `e2e/web/error-handling.spec.ts` - エラーハンドリングのテスト（ネットワークエラー、バリデーションエラー）
 
 ### モバイル版テスト
 
