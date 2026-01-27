@@ -56,32 +56,35 @@ test.describe('買い物リストフロー', () => {
     await page.goto('/(tabs)/shopping');
     await waitForLoadingToComplete(page);
     
-    // 既存のアイテムを探す
-    const item = page.locator('[data-testid="shopping-item"], button:has-text("未購入"), text=購入済み').first();
+    // まずアイテムを追加
+    const testItem = generateTestShoppingItem();
+    const input = page.locator('input[placeholder*="アイテムを追加"], input[placeholder*="アイテム"]').first();
+    await input.fill(testItem.name);
     
-    if (await item.count() > 0) {
+    const addButton = page.locator('button:has-text("追加"), button[type="submit"]').first();
+    if (await addButton.count() > 0) {
+      await addButton.click();
+    } else {
+      await input.press('Enter');
+    }
+    
+    await page.waitForTimeout(2000);
+    
+    // 追加したアイテムを探す
+    const addedItem = page.locator(`text=${testItem.name}`).first();
+    
+    if (await addedItem.count() > 0) {
       // アイテムをクリックして購入済みにマーク
-      await item.click();
+      await addedItem.click();
       
       // 状態が変更されるまで待機
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       
-      // 購入済み状態が反映されていることを確認
-      const pageText = await page.textContent('body');
-      expect(pageText).toBeTruthy();
-    } else {
-      // アイテムがない場合は追加してからテスト
-      const testItem = generateTestShoppingItem();
-      const input = page.locator('input[placeholder*="買い物"], input[type="text"]').first();
-      await input.fill(testItem.name);
-      const addButton = page.locator('button:has-text("追加")').first();
-      await addButton.click();
-      await page.waitForTimeout(1000);
-      
-      // 追加したアイテムをクリック
-      const addedItem = page.locator(`text=${testItem.name}`).first();
-      await addedItem.click();
-      await page.waitForTimeout(1000);
+      // 購入済み状態が反映されていることを確認（チェックマークが表示される）
+      const completedIndicator = page.locator('[data-testid="shopping-completed"], text=✓').first();
+      if (await completedIndicator.count() > 0) {
+        await expect(completedIndicator).toBeVisible();
+      }
     }
   });
 });

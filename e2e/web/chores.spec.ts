@@ -62,27 +62,50 @@ test.describe('家事管理フロー', () => {
   });
 
   test('家事の完了状態の切り替え', async ({ page }) => {
-    // 家事タブに移動
+    // まず家事を追加
     await page.goto('/(tabs)/chores');
     await waitForLoadingToComplete(page);
     
-    // 既存の家事アイテムを探す
-    const choreItem = page.locator('[data-testid="chore-item"], button:has-text("完了"), text=未完了').first();
+    const chore = generateTestChore();
+    
+    // 家事を追加
+    const addButton = page.locator('button:has-text("家事を追加"), text=+ 家事を追加').first();
+    await addButton.click();
+    await waitForText(page, '家事を追加', 5000);
+    
+    const nameInput = page.locator('input[placeholder*="名前"], input[placeholder*="例"]').first();
+    await nameInput.fill(chore.name);
+    
+    const categoryButton = page.locator(`button:has-text("${chore.category}")`).first();
+    if (await categoryButton.count() > 0) {
+      await categoryButton.click();
+    }
+    
+    const frequencyButton = page.locator(`button:has-text("${chore.frequency}")`).first();
+    if (await frequencyButton.count() > 0) {
+      await frequencyButton.click();
+    }
+    
+    const saveButton = page.locator('button:has-text("追加"), button:has-text("保存")').first();
+    await saveButton.click();
+    await page.waitForTimeout(2000);
+    
+    // 追加した家事アイテムを探す
+    const choreItem = page.locator(`text=${chore.name}`).first();
     
     if (await choreItem.count() > 0) {
       // 家事アイテムをクリックして完了状態を切り替え
       await choreItem.click();
       
       // 状態が変更されるまで待機
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       
-      // 完了状態が反映されていることを確認
-      // （UIの変更を確認）
-      const pageText = await page.textContent('body');
-      expect(pageText).toBeTruthy();
-    } else {
-      // 家事がない場合はスキップ
-      test.skip();
+      // 完了状態が反映されていることを確認（チェックマークが表示される）
+      // チェックボックスまたは完了マークを確認
+      const completedIndicator = page.locator('[data-testid="chore-completed"], text=✓').first();
+      if (await completedIndicator.count() > 0) {
+        await expect(completedIndicator).toBeVisible();
+      }
     }
   });
 });

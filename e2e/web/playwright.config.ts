@@ -8,9 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
  * - SUPABASE_URL: SupabaseプロジェクトのURL
  * - SUPABASE_ANON_KEY: Supabaseの匿名キー
  */
-const baseURL = process.env.BASE_URL || process.env.VERCEL_URL 
-  ? `https://${process.env.VERCEL_URL}` 
-  : 'http://localhost:8081';
+const baseURL = process.env.BASE_URL 
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
+  || 'http://localhost:8081';
 
 export default defineConfig({
   testDir: './e2e/web',

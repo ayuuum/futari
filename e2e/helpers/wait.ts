@@ -56,14 +56,21 @@ export async function waitForLoadingToComplete(page: Page, timeout = 10000): Pro
 }
 
 /**
- * アラートが表示されるまで待機
+ * アラートが表示されるまで待機（React Native Alertの場合）
  */
 export async function waitForAlert(
   page: Page,
   text: string,
   timeout = 10000
 ): Promise<void> {
-  await waitForText(page, text, timeout);
+  // React Native Alertは、Web版では通常のテキストとして表示される
+  // または、モーダルとして表示される場合もある
+  try {
+    await waitForText(page, text, timeout);
+  } catch {
+    // モーダル内のテキストを探す
+    await page.waitForSelector(`[role="alert"]:has-text("${text}")`, { timeout });
+  }
 }
 
 /**
