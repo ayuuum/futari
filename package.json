@@ -11,12 +11,12 @@
     "supabase:deploy-functions": "npx supabase functions deploy",
     "supabase:serve-functions": "npx supabase functions serve",
     "setup:email-templates": "node scripts/setup-email-templates.js",
-    "test:e2e:web": "playwright test",
-    "test:e2e:web:ui": "playwright test --ui",
-    "test:e2e:web:headed": "playwright test --headed",
-    "test:e2e:mobile": "detox test",
-    "test:e2e:mobile:ios": "detox test --configuration ios",
-    "test:e2e:mobile:android": "detox test --configuration android"
+    "test:e2e:web": "npx playwright test",
+    "test:e2e:web:ui": "npx playwright test --ui",
+    "test:e2e:web:headed": "npx playwright test --headed",
+    "test:e2e:mobile": "npx detox test",
+    "test:e2e:mobile:ios": "npx detox test --configuration ios",
+    "test:e2e:mobile:android": "npx detox test --configuration android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
