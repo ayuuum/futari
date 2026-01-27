@@ -3,17 +3,13 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "destination": "/$1"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!_expo|assets|favicon\\.ico|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)).*)",
       "destination": "/$1.html"
     }
   ],
   "headers": [
     {
-      "source": "/_expo/static/(.*)",
+      "source": "/_expo/static/:path*",
       "headers": [
         {
           "key": "Cache-Control",
@@ -22,7 +18,7 @@
       ]
     },
     {
-      "source": "/assets/(.*)",
+      "source": "/assets/:path*",
       "headers": [
         {
           "key": "Cache-Control",
