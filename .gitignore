@@ -40,3 +40,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# E2E tests
+test-results/
+playwright-report/
+playwright/.cache/
+.detoxrc.local.js
+artifacts/
