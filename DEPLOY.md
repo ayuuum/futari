@@ -47,14 +47,24 @@ netlify deploy --prod --dir=dist
 2. Settings → Pages で `dist` をソースに設定
 3. 自動で `https://yourusername.github.io/Futari` に公開
 
-## 3. 環境変数の設定
+## 3. 環境変数の設定（重要！）
 
-デプロイ先で以下の環境変数を設定してください（ビルド時に必要）:
+デプロイ先で以下の環境変数を設定してください（**ビルド時に必要**）:
 
-- `EXPO_PUBLIC_SUPABASE_URL`
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- `EXPO_PUBLIC_SUPABASE_URL`: SupabaseプロジェクトのURL（例: `https://xxxxx.supabase.co`）
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`: Supabaseの匿名キー
 
-**Vercel/Netlify**: プロジェクト設定 → Environment Variables から追加
+**Vercelでの設定方法**:
+1. Vercelダッシュボードでプロジェクトを開く
+2. **Settings** → **Environment Variables** をクリック
+3. 以下の環境変数を追加：
+   - `EXPO_PUBLIC_SUPABASE_URL` = `https://your-project.supabase.co`
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` = `your-anon-key`
+4. **Environment** で **Production**, **Preview**, **Development** すべてにチェックを入れる
+5. **Save** をクリック
+6. **重要**: 環境変数を追加した後、**新しいデプロイメントをトリガー**する必要があります（既存のデプロイメントには反映されません）
+
+**環境変数が設定されていない場合**: ビルドが失敗し、404エラーが発生します。
 
 ## 4. カスタムドメイン（任意）
 
