@@ -45,7 +45,12 @@ export default function SignupScreen() {
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { display_name: name } },
+            options: { 
+                data: { 
+                    display_name: name,
+                    language: 'ja' // メールテンプレートの言語設定
+                } 
+            },
         });
 
         if (authError) {
