@@ -79,6 +79,7 @@ export default function ShoppingScreen() {
             onPress={() => toggleItem(item.id, item.is_purchased)}
             onLongPress={() => deleteItem(item.id)}
             activeOpacity={0.7}
+            testID="shopping-item"
         >
             <View style={styles.itemLeft}>
                 <View
