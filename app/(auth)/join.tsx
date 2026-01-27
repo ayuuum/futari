@@ -84,9 +84,20 @@ export default function JoinScreen() {
                 return;
             }
 
-            Alert.alert('参加完了！🎉', 'パートナーとつながりました！', [
-                { text: 'はじめる', onPress: () => router.replace('/(tabs)') },
-            ]);
+            // Check if session exists (email confirmation may be required)
+            if (authData.session) {
+                // Session exists, navigate to tabs
+                Alert.alert('参加完了！🎉', 'パートナーとつながりました！', [
+                    { text: 'はじめる', onPress: () => router.replace('/(tabs)') },
+                ]);
+            } else {
+                // Email confirmation required
+                Alert.alert(
+                    'メール確認が必要です',
+                    `登録用のメールを ${email} に送信しました。\nメール内のリンクをクリックしてアカウントを確認してください。\n\n（メール確認後にログインしてください）`,
+                    [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+                );
+            }
         }
 
         setLoading(false);

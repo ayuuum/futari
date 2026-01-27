@@ -81,12 +81,22 @@ export default function SignupScreen() {
                 return;
             }
 
-            // 4. Show invite code and navigate
-            Alert.alert(
-                '登録完了！🎉',
-                `パートナーに招待コードを共有してください:\n\n${inviteCode}`,
-                [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-            );
+            // 4. Check if session exists (email confirmation may be required)
+            if (authData.session) {
+                // Session exists, navigate to tabs
+                Alert.alert(
+                    '登録完了！🎉',
+                    `パートナーに招待コードを共有してください:\n\n${inviteCode}`,
+                    [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+                );
+            } else {
+                // Email confirmation required
+                Alert.alert(
+                    'メール確認が必要です',
+                    `登録用のメールを ${email} に送信しました。\nメール内のリンクをクリックしてアカウントを確認してください。\n\n招待コード: ${inviteCode}\n（メール確認後にログインしてください）`,
+                    [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+                );
+            }
         }
 
         setLoading(false);
