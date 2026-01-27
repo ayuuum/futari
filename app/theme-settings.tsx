@@ -40,7 +40,7 @@ export default function ThemeSettingsScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Color Theme Selection */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+                    <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
                         カラーテーマ
                     </Text>
                     <View style={styles.themeGrid}>
@@ -84,10 +84,10 @@ export default function ThemeSettingsScreen() {
 
                 {/* Color Mode */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+                    <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
                         カラーモード
                     </Text>
-                    <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: theme.isDark ? 1 : 0 }]}>
+                    <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
                         {/* System Mode */}
                         <View style={styles.settingItem}>
                             <View style={styles.settingInfo}>
@@ -98,7 +98,7 @@ export default function ThemeSettingsScreen() {
                                     <Text style={[styles.settingTitle, { color: theme.text }]}>
                                         端末の設定に合わせる
                                     </Text>
-                                    <Text style={[styles.settingDesc, { color: theme.textMuted }]}>
+                                    <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
                                         システムのダークモード設定を使用
                                     </Text>
                                 </View>
@@ -126,7 +126,7 @@ export default function ThemeSettingsScreen() {
                                         <Text style={[styles.settingTitle, { color: theme.text }]}>
                                             ダークモード
                                         </Text>
-                                        <Text style={[styles.settingDesc, { color: theme.textMuted }]}>
+                                        <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
                                             {isDark ? 'オン - 目に優しい暗いテーマ' : 'オフ - 明るいテーマ'}
                                         </Text>
                                     </View>
@@ -144,10 +144,10 @@ export default function ThemeSettingsScreen() {
 
                 {/* Preview */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+                    <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
                         プレビュー
                     </Text>
-                    <View style={[styles.previewCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: theme.isDark ? 1 : 0 }]}>
+                    <View style={[styles.previewCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
                         <View style={styles.previewHeader}>
                             <View style={[styles.previewAvatar, { backgroundColor: theme.primary + '20' }]}>
                                 <Text style={styles.previewAvatarText}>💑</Text>

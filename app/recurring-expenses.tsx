@@ -1,10 +1,12 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { ThemeColors } from '@/constants/themes';
+import { useTheme, useThemedStyles } from '@/contexts/ThemeContext';
 import {
     useAddRecurringExpense,
     useRecurringExpenses,
     useUpdateRecurringExpense,
 } from '@/lib/queries';
 import { useAuthStore } from '@/stores/authStore';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -30,6 +32,8 @@ const CATEGORIES = [
 ];
 
 export default function RecurringExpensesScreen() {
+    const { theme } = useTheme();
+    const styles = useThemedStyles(createStyles);
     const { profile } = useAuthStore();
     const coupleId = profile?.couple_id ?? null;
     const { data: expenses = [], isLoading } = useRecurringExpenses(coupleId);
@@ -97,14 +101,14 @@ export default function RecurringExpensesScreen() {
     if (!coupleId && profile) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-                <Text style={{ color: '#666' }}>パートナーと連携すると固定費を管理できます</Text>
+                <Text style={{ color: theme.textSecondary }}>パートナーと連携すると固定費を管理できます</Text>
             </View>
         );
     }
     if (isLoading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#FF6B9D" />
+                <ActivityIndicator size="large" color={theme.primary} />
             </View>
         );
     }
@@ -114,11 +118,11 @@ export default function RecurringExpensesScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>🔄 固定費管理</Text>
                 <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-                    <FontAwesome name="plus" size={18} color="#FF6B9D" />
+                    <FontAwesome name="plus" size={18} color={theme.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -142,9 +146,9 @@ export default function RecurringExpensesScreen() {
                 </View>
 
                 {/* Expenses by Category */}
-                {Object.entries(groupedExpenses).map(([category, categoryExpenses]) => {
+                {(Object.entries(groupedExpenses) as [string, any[]][]).map(([category, categoryExpenses]) => {
                     const categoryInfo = getCategoryInfo(category);
-                    const categoryTotal = categoryExpenses.reduce((sum, e) => (e.is_active ? sum + e.amount : sum), 0);
+                    const categoryTotal = categoryExpenses.reduce((sum: number, e: any) => (e.is_active ? sum + e.amount : sum), 0);
 
                     return (
                         <View key={category} style={styles.categorySection}>
@@ -159,7 +163,7 @@ export default function RecurringExpensesScreen() {
                             </View>
 
                             <View style={styles.expensesList}>
-                                {categoryExpenses.map((expense) => (
+                                {categoryExpenses.map((expense: any) => (
                                     <View
                                         key={expense.id}
                                         style={[styles.expenseItem, !expense.is_active && styles.expenseItemInactive]}
@@ -211,7 +215,7 @@ export default function RecurringExpensesScreen() {
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>固定費を追加</Text>
                             <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                                <FontAwesome name="times" size={22} color="#666" />
+                                <FontAwesome name="times" size={22} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
@@ -221,7 +225,7 @@ export default function RecurringExpensesScreen() {
                                 <TextInput
                                     style={styles.formInput}
                                     placeholder="例: 家賃"
-                                    placeholderTextColor="#ccc"
+                                    placeholderTextColor={theme.textMuted}
                                     value={newExpense.name}
                                     onChangeText={(text) => setNewExpense({ ...newExpense, name: text })}
                                 />
@@ -232,7 +236,7 @@ export default function RecurringExpensesScreen() {
                                 <TextInput
                                     style={styles.formInput}
                                     placeholder="80000"
-                                    placeholderTextColor="#ccc"
+                                    placeholderTextColor={theme.textMuted}
                                     keyboardType="numeric"
                                     value={newExpense.amount}
                                     onChangeText={(text) => setNewExpense({ ...newExpense, amount: text })}
@@ -271,7 +275,7 @@ export default function RecurringExpensesScreen() {
                                 <TextInput
                                     style={styles.formInput}
                                     placeholder="27"
-                                    placeholderTextColor="#ccc"
+                                    placeholderTextColor={theme.textMuted}
                                     keyboardType="numeric"
                                     value={newExpense.dueDay}
                                     onChangeText={(text) => setNewExpense({ ...newExpense, dueDay: text })}
@@ -293,10 +297,10 @@ export default function RecurringExpensesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
@@ -305,7 +309,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -313,18 +317,18 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     addButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         justifyContent: 'center',
         alignItems: 'center',
     },
     summaryCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         marginHorizontal: 16,
         borderRadius: 16,
         padding: 20,
@@ -333,6 +337,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     summaryRow: {
         flexDirection: 'row',
@@ -345,31 +351,31 @@ const styles = StyleSheet.create({
     summaryDivider: {
         width: 1,
         height: 50,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: theme.divider,
     },
     summaryLabel: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textSecondary,
         marginBottom: 4,
     },
     summaryAmount: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#FF6B9D',
+        color: theme.primary,
     },
     summaryAmountSmall: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     summaryNote: {
         textAlign: 'center',
         fontSize: 13,
-        color: '#666',
+        color: theme.textSecondary,
         marginTop: 16,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
+        borderTopColor: theme.border,
     },
     categorySection: {
         marginTop: 24,
@@ -396,24 +402,26 @@ const styles = StyleSheet.create({
     categoryTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     categoryTotal: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
     },
     expensesList: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         overflow: 'hidden',
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     expenseItem: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#f5f5f5',
+        borderBottomColor: theme.border,
     },
     expenseItemInactive: {
         opacity: 0.5,
@@ -427,23 +435,23 @@ const styles = StyleSheet.create({
     expenseName: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
     },
     expenseNameInactive: {
         textDecorationLine: 'line-through',
     },
     expenseDueDay: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textMuted,
         marginTop: 2,
     },
     expenseAmount: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     expenseAmountInactive: {
-        color: '#999',
+        color: theme.textMuted,
     },
     tipsSection: {
         marginTop: 32,
@@ -452,17 +460,17 @@ const styles = StyleSheet.create({
     tipsTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     tipCard: {
-        backgroundColor: '#E8F8F5',
+        backgroundColor: isDark ? '#1a332e' : '#E8F8F5',
         borderRadius: 12,
         padding: 16,
     },
     tipText: {
         fontSize: 14,
-        color: '#2C7A6B',
+        color: isDark ? '#4ECDC4' : '#2C7A6B',
         lineHeight: 20,
     },
     modalOverlay: {
@@ -471,7 +479,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
@@ -486,7 +494,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     modalForm: {
         gap: 20,
@@ -497,14 +505,14 @@ const styles = StyleSheet.create({
     formLabel: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
     },
     formInput: {
-        backgroundColor: '#f8f8f8',
+        backgroundColor: isDark ? '#333' : '#f8f8f8',
         borderRadius: 12,
         padding: 14,
         fontSize: 16,
-        color: '#333',
+        color: theme.text,
     },
     categorySelect: {
         flexDirection: 'row',
@@ -517,7 +525,7 @@ const styles = StyleSheet.create({
         gap: 6,
         paddingHorizontal: 14,
         paddingVertical: 10,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: isDark ? '#333' : '#f8f8f8',
         borderRadius: 20,
         borderWidth: 2,
         borderColor: 'transparent',
@@ -525,10 +533,10 @@ const styles = StyleSheet.create({
     categoryOptionText: {
         fontSize: 13,
         fontWeight: '500',
-        color: '#666',
+        color: theme.textSecondary,
     },
     saveButton: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',

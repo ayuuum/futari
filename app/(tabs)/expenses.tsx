@@ -5,13 +5,13 @@ import { useAuthStore } from '@/stores/authStore';
 import { Link } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from 'react-native';
 
 const categories = [
@@ -122,22 +122,22 @@ export default function ExpensesScreen() {
 
                 {/* Category Bar */}
                 {monthlySummary.byCategory.length > 0 && (
-                <View style={styles.categoryBar}>
-                    {monthlySummary.byCategory.map((cat, index) => (
-                        <View
-                            key={cat.name}
-                            style={[
-                                styles.categorySegment,
-                                {
-                                    backgroundColor: index === 0 ? theme.primary : (index === 1 ? theme.secondary : cat.color),
-                                    flex: cat.amount / monthlySummary.total,
-                                },
-                                index === 0 && { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 },
-                                index === monthlySummary.byCategory.length - 1 && { borderTopRightRadius: 4, borderBottomRightRadius: 4 },
-                            ]}
-                        />
-                    ))}
-                </View>
+                    <View style={styles.categoryBar}>
+                        {monthlySummary.byCategory.map((cat, index) => (
+                            <View
+                                key={cat.name}
+                                style={[
+                                    styles.categorySegment,
+                                    {
+                                        backgroundColor: index === 0 ? theme.primary : (index === 1 ? theme.secondary : cat.color),
+                                        flex: cat.amount / monthlySummary.total,
+                                    },
+                                    index === 0 && { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 },
+                                    index === monthlySummary.byCategory.length - 1 && { borderTopRightRadius: 4, borderBottomRightRadius: 4 },
+                                ]}
+                            />
+                        ))}
+                    </View>
                 )}
             </View>
 
@@ -192,7 +192,7 @@ export default function ExpensesScreen() {
     );
 }
 
-const createStyles = (theme: ThemeColors) => StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.background,
@@ -206,7 +206,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     summaryLabel: {
         fontSize: 14,
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     summaryAmount: {
         fontSize: 32,
@@ -264,7 +264,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     categoryChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.isDark ? '#333' : '#f5f5f5',
+        backgroundColor: isDark ? '#333' : '#f5f5f5',
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 20,
@@ -279,7 +279,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     categoryText: {
         fontSize: 13,
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     categoryTextActive: {
         color: '#fff',
@@ -301,7 +301,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         padding: 16,
         borderRadius: 12,
         marginBottom: 8,
-        borderWidth: theme.isDark ? 1 : 0,
+        borderWidth: isDark ? 1 : 0,
         borderColor: theme.border,
     },
     expenseLeft: {
@@ -315,7 +315,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     expenseMeta: {
         fontSize: 12,
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     expenseAmount: {
         fontSize: 16,

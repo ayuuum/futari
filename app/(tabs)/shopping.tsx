@@ -1,7 +1,7 @@
 import { ThemeColors } from '@/constants/themes';
 import { useTheme, useThemedStyles } from '@/contexts/ThemeContext';
-import { useAuthStore } from '@/stores/authStore';
 import { useShoppingItems, useShoppingMutations } from '@/lib/queries';
+import { useAuthStore } from '@/stores/authStore';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
@@ -28,7 +28,7 @@ export default function ShoppingScreen() {
     const toggleItem = async (id: string, current: boolean) => {
         try {
             await update.mutateAsync({ id, is_purchased: !current, purchased_by: !current ? myId : null });
-        } catch (_) {}
+        } catch (_) { }
     };
 
     const addItem = async () => {
@@ -63,12 +63,12 @@ export default function ShoppingScreen() {
     };
 
     const getCategoryColor = (category: string | null) => {
-        if (!category) return theme.subtext;
+        if (!category) return theme.textSecondary;
         switch (category) {
             case '日用品': return '#9B59B6';
             case '食品': return '#6BCB77';
             case '生活家電': return '#3498DB';
-            default: return theme.subtext;
+            default: return theme.textSecondary;
         }
     };
 
@@ -142,7 +142,7 @@ export default function ShoppingScreen() {
                 <TextInput
                     style={styles.input}
                     placeholder="アイテムを追加..."
-                    placeholderTextColor={theme.subtext}
+                    placeholderTextColor={theme.textSecondary}
                     value={newItemName}
                     onChangeText={setNewItemName}
                     onSubmitEditing={addItem}
@@ -212,7 +212,7 @@ export default function ShoppingScreen() {
     );
 }
 
-const createStyles = (theme: ThemeColors) => StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.background,
@@ -227,7 +227,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     input: {
         flex: 1,
-        backgroundColor: theme.isDark ? '#333' : '#f5f5f5',
+        backgroundColor: isDark ? '#333' : '#f5f5f5',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 12,
@@ -264,7 +264,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     summaryLabel: {
         fontSize: 12,
-        color: theme.subtext,
+        color: theme.textSecondary,
         marginTop: 4,
     },
     summaryDivider: {
@@ -290,7 +290,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     sectionTitleMuted: {
         fontSize: 14,
         fontWeight: '500',
-        color: theme.subtext,
+        color: theme.textSecondary,
         marginBottom: 8,
     },
     itemCard: {
@@ -306,11 +306,11 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         shadowOpacity: 0.03,
         shadowRadius: 4,
         elevation: 1,
-        borderWidth: theme.isDark ? 1 : 0,
+        borderWidth: isDark ? 1 : 0,
         borderColor: theme.border,
     },
     itemCardPurchased: {
-        backgroundColor: theme.isDark ? '#222' : '#f9f9f9',
+        backgroundColor: isDark ? '#222' : '#f9f9f9',
     },
     itemLeft: {
         flexDirection: 'row',
@@ -342,7 +342,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         marginBottom: 4,
     },
     itemNamePurchased: {
-        color: theme.subtext,
+        color: theme.textSecondary,
         textDecorationLine: 'line-through',
     },
     itemMeta: {
@@ -365,7 +365,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         color: theme.text,
     },
     itemPricePurchased: {
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     emptyState: {
         alignItems: 'center',
@@ -377,7 +377,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     showCompletedButton: {
         alignItems: 'center',
@@ -385,7 +385,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         marginHorizontal: 16,
     },
     showCompletedText: {
-        color: theme.subtext,
+        color: theme.textSecondary,
         fontSize: 14,
     },
 });

@@ -1,3 +1,5 @@
+import { ThemeColors } from '@/constants/themes';
+import { useTheme, useThemedStyles } from '@/contexts/ThemeContext';
 import { useCalendarEvents } from '@/lib/queries';
 import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -5,6 +7,7 @@ import { Link, router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
     Dimensions,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -95,21 +98,21 @@ export default function CalendarScreen() {
         setSelectedDate(null);
     };
 
-    const getSelectedDateEvents = () => {
+    const { theme } = useTheme();
+    const styles = useThemedStyles(createStyles);
+    const calendarDays = generateCalendarDays();
+    const selectedEvents = useMemo(() => {
         if (!selectedDate) return [];
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
-        return mockEvents.filter(e => e.date === dateStr);
-    };
-
-    const calendarDays = generateCalendarDays();
-    const selectedEvents = getSelectedDateEvents();
+        return eventsWithColor.filter(e => e.date === dateStr);
+    }, [selectedDate, eventsWithColor, currentYear, currentMonth]);
 
     return (
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>📅 カレンダー</Text>
                 <Link href="/calendar-add" asChild>
@@ -123,13 +126,13 @@ export default function CalendarScreen() {
                 {/* Month Navigation */}
                 <View style={styles.monthNav}>
                     <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
-                        <FontAwesome name="chevron-left" size={16} color="#666" />
+                        <FontAwesome name="chevron-left" size={16} color={theme.textSecondary} />
                     </TouchableOpacity>
                     <Text style={styles.monthTitle}>
                         {currentYear}年 {MONTHS[currentMonth]}
                     </Text>
                     <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-                        <FontAwesome name="chevron-right" size={16} color="#666" />
+                        <FontAwesome name="chevron-right" size={16} color={theme.textSecondary} />
                     </TouchableOpacity>
                 </View>
 
@@ -228,7 +231,7 @@ export default function CalendarScreen() {
                 {/* Upcoming Events */}
                 <View style={styles.upcomingSection}>
                     <Text style={styles.upcomingSectionTitle}>📌 今後の予定</Text>
-                    {mockEvents.slice(0, 5).map((event) => (
+                    {eventsWithColor.slice(0, 5).map((event) => (
                         <View key={event.id} style={styles.upcomingCard}>
                             <View style={[styles.upcomingColor, { backgroundColor: event.color }]} />
                             <View style={styles.upcomingInfo}>
@@ -245,19 +248,19 @@ export default function CalendarScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingTop: 60,
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     addButton: {
         width: 40,
@@ -288,10 +291,10 @@ const styles = StyleSheet.create({
     monthTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     calendarCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         marginHorizontal: 16,
         borderRadius: 16,
         padding: 16,
@@ -300,6 +303,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     dayHeaders: {
         flexDirection: 'row',
@@ -310,7 +315,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 12,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
         paddingVertical: 8,
     },
     daysGrid: {
@@ -325,21 +330,21 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     todayCell: {
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
     },
     selectedCell: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
     },
     dayText: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
     },
     otherMonthText: {
-        color: '#ddd',
+        color: theme.textMuted,
     },
     todayText: {
-        color: '#FF6B9D',
+        color: theme.primary,
         fontWeight: '700',
     },
     selectedText: {
@@ -349,7 +354,7 @@ const styles = StyleSheet.create({
         color: '#E74C3C',
     },
     saturdayText: {
-        color: '#3498DB',
+        color: theme.info,
     },
     eventDots: {
         flexDirection: 'row',
@@ -368,13 +373,13 @@ const styles = StyleSheet.create({
     eventsSectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     eventCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 8,
@@ -383,6 +388,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.03,
         shadowRadius: 4,
         elevation: 1,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     eventColor: {
         width: 4,
@@ -396,18 +403,20 @@ const styles = StyleSheet.create({
     eventTitle: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
     },
     eventCategory: {
         fontSize: 13,
-        color: '#666',
+        color: theme.textSecondary,
         marginTop: 4,
     },
     noEvents: {
         alignItems: 'center',
         padding: 32,
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     noEventsEmoji: {
         fontSize: 40,
@@ -415,7 +424,7 @@ const styles = StyleSheet.create({
     },
     noEventsText: {
         fontSize: 15,
-        color: '#999',
+        color: theme.textMuted,
         marginBottom: 16,
     },
     addEventButton: {
@@ -427,7 +436,7 @@ const styles = StyleSheet.create({
     addEventButtonText: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#fff',
+        color: theme.card,
     },
     upcomingSection: {
         marginTop: 24,
@@ -436,16 +445,18 @@ const styles = StyleSheet.create({
     upcomingSectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     upcomingCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 10,
         padding: 12,
         marginBottom: 8,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     upcomingColor: {
         width: 4,
@@ -459,11 +470,11 @@ const styles = StyleSheet.create({
     upcomingTitle: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
     },
     upcomingDate: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textMuted,
         marginTop: 2,
     },
 });

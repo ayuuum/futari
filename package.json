@@ -11,6 +11,7 @@
     "supabase:deploy-functions": "npx supabase functions deploy",
     "supabase:serve-functions": "npx supabase functions serve",
     "setup:email-templates": "node scripts/setup-email-templates.js",
+    "test": "jest",
     "test:e2e:web": "npx playwright test",
     "test:e2e:web:ui": "npx playwright test --ui",
     "test:e2e:web:headed": "npx playwright test --headed",

@@ -1,16 +1,15 @@
 import { ThemeColors } from '@/constants/themes';
-import { useTheme, useThemedStyles } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, router } from 'expo-router';
 import React from 'react';
-import { Alert } from 'react-native';
 import {
-  ScrollView,
+  Alert, ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 interface SettingItemProps {
@@ -23,7 +22,7 @@ interface SettingItemProps {
 
 function SettingItem({ icon, title, description, href, iconColor }: SettingItemProps) {
   const { theme, isDark } = useTheme();
-  const styles = useThemedStyles(createStyles);
+  const styles = createStyles(theme, isDark);
   const color = iconColor || theme.textSecondary;
 
   return (
@@ -48,7 +47,8 @@ interface SettingSectionProps {
 }
 
 function SettingSection({ title, children }: SettingSectionProps) {
-  const styles = useThemedStyles(createStyles);
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -60,17 +60,19 @@ function SettingSection({ title, children }: SettingSectionProps) {
 }
 
 export default function SettingsScreen() {
-  const { theme } = useTheme();
-  const styles = useThemedStyles(createStyles);
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
   const { profile, partner, signOut } = useAuthStore();
 
   const handleLogout = () => {
     Alert.alert('ログアウト', 'ログアウトしますか？', [
       { text: 'キャンセル', style: 'cancel' },
-      { text: 'ログアウト', style: 'destructive', onPress: async () => {
-        await signOut();
-        router.replace('/(auth)/login' as any);
-      } },
+      {
+        text: 'ログアウト', style: 'destructive', onPress: async () => {
+          await signOut();
+          router.replace('/(auth)/login' as any);
+        }
+      },
     ]);
   };
 

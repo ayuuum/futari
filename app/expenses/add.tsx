@@ -1,23 +1,23 @@
-import { parseExpenseFromText, scanReceipt, suggestCategory, type CategoryId } from '@/lib/ai';
-import { useAddExpense } from '@/lib/queries';
-import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
+import { parseExpenseFromText, scanReceipt, suggestCategory, type CategoryId } from '@/lib/ai';
+import { useAddExpense, useCouple } from '@/lib/queries';
+import { useAuthStore } from '@/stores/authStore';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
+import { router, Stack } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    ScrollView,
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
-    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { router, Stack } from 'expo-router';
 
 const categories = [
     { id: 'food', name: '食費', emoji: '🍽️' },
@@ -43,6 +43,7 @@ export default function AddExpenseScreen() {
     const [parsingText, setParsingText] = useState(false);
     const [quickInput, setQuickInput] = useState('');
     const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 10));
+    const { data: couple } = useCouple(profile?.couple_id ?? null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -70,19 +71,16 @@ export default function AddExpenseScreen() {
             Alert.alert('エラー', '金額と内容を入力してください');
             return;
         }
-        if (!profile?.couple_id) {
-            Alert.alert('エラー', 'パートナーと連携してください');
-            return;
-        }
         const amt = parseInt(amount.replace(/\D/g, ''), 10);
         if (isNaN(amt) || amt <= 0) {
             Alert.alert('エラー', '有効な金額を入力してください');
             return;
         }
+        if (!profile) return;
         const categoryName = categories.find((c) => c.id === selectedCategory)?.name ?? 'その他';
         try {
             await addExpense.mutateAsync({
-                couple_id: profile.couple_id,
+                couple_id: profile.couple_id!,
                 paid_by: profile.id,
                 amount: amt,
                 category: categoryName,
@@ -116,8 +114,8 @@ export default function AddExpenseScreen() {
         try {
             const uri = result.assets[0].uri;
             const base64 = await FileSystem.readAsStringAsync(uri, {
-                encoding: FileSystem.EncodingType.Base64,
-            });
+                encoding: 'base64',
+            } as any);
             const parsed = await scanReceipt(base64);
             setAmount(String(parsed.amount));
             setDescription(parsed.description);
@@ -165,7 +163,7 @@ export default function AddExpenseScreen() {
                         <TextInput
                             style={styles.amountInput}
                             placeholder="0"
-                            placeholderTextColor="#ccc"
+                            placeholderTextColor={theme.textMuted}
                             value={amount}
                             onChangeText={setAmount}
                             keyboardType="numeric"
@@ -179,7 +177,7 @@ export default function AddExpenseScreen() {
                             <TextInput
                                 style={[styles.textInput, { flex: 1 }]}
                                 placeholder="例: 昨日コンビニで500円"
-                                placeholderTextColor="#999"
+                                placeholderTextColor={theme.textMuted}
                                 value={quickInput}
                                 onChangeText={setQuickInput}
                             />
@@ -227,7 +225,7 @@ export default function AddExpenseScreen() {
                         <TextInput
                             style={styles.textInput}
                             placeholder="例：スーパーマーケット"
-                            placeholderTextColor="#999"
+                            placeholderTextColor={theme.textMuted}
                             value={description}
                             onChangeText={setDescription}
                         />

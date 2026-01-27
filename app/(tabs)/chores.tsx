@@ -52,7 +52,18 @@ export default function ChoresScreen() {
     const [choreAdvice, setChoreAdvice] = useState('');
     const [loadingChoreAdvice, setLoadingChoreAdvice] = useState(false);
 
+    const myCompleted = useMemo(
+        () => completions.filter((c) => c.completed_by === myId).length,
+        [completions, myId]
+    );
+    const partnerCompleted = useMemo(
+        () => completions.filter((c) => c.completed_by !== myId).length,
+        [completions, myId]
+    );
+
     const partnerName = partner?.display_name ?? 'パートナー';
+    const myChoreCount = chores.filter((c) => c.assigned_to === myId).length;
+    const partnerChoreCount = chores.filter((c) => c.assigned_to && c.assigned_to !== myId).length;
     const isUnbalanced = chores.length > 0 && Math.abs(myChoreCount - partnerChoreCount) > 2;
 
     useEffect(() => {
@@ -87,16 +98,6 @@ export default function ChoresScreen() {
         }));
     }, [chores]);
 
-    const myCompleted = useMemo(
-        () => completions.filter((c) => c.completed_by === myId).length,
-        [completions, myId]
-    );
-    const partnerCompleted = useMemo(
-        () => completions.filter((c) => c.completed_by !== myId).length,
-        [completions, myId]
-    );
-    const myChoreCount = chores.filter((c) => c.assigned_to === myId).length;
-    const partnerChoreCount = chores.filter((c) => c.assigned_to && c.assigned_to !== myId).length;
 
     const isCompletedThisWeek = (choreId: string) =>
         completions.some((c) => c.chore_id === choreId);
@@ -105,7 +106,7 @@ export default function ChoresScreen() {
         if (!myId) return;
         try {
             await addCompletion.mutateAsync({ chore_id: choreId, completed_by: myId });
-        } catch (_) {}
+        } catch (_) { }
     };
 
     const getAssignedToUserId = (): string | null => {
@@ -130,7 +131,7 @@ export default function ChoresScreen() {
             setAddCategory('その他');
             setAddFrequency('週1回');
             setAddAssignedTo('none');
-        } catch (_) {}
+        } catch (_) { }
     };
 
     if (!coupleId && profile) {
@@ -369,7 +370,7 @@ export default function ChoresScreen() {
     );
 }
 
-const createStyles = (theme: ThemeColors) => StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.background,
@@ -386,12 +387,12 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
-        borderWidth: theme.isDark ? 1 : 0,
+        borderWidth: isDark ? 1 : 0,
         borderColor: theme.border,
     },
     statsTitle: {
         fontSize: 14,
-        color: theme.subtext,
+        color: theme.textSecondary,
         textAlign: 'center',
         marginBottom: 16,
     },
@@ -424,7 +425,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     progressLabel: {
         fontSize: 12,
-        color: theme.subtext,
+        color: theme.textSecondary,
         marginTop: 4,
     },
     vsContainer: {
@@ -436,13 +437,13 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         fontWeight: '600',
     },
     alertBanner: {
-        backgroundColor: theme.isDark ? '#443300' : '#FFF3CD',
+        backgroundColor: isDark ? '#443300' : '#FFF3CD',
         borderRadius: 8,
         padding: 12,
         marginTop: 16,
     },
     alertText: {
-        color: theme.isDark ? '#FFD700' : '#856404',
+        color: isDark ? '#FFD700' : '#856404',
         fontSize: 13,
         textAlign: 'center',
     },
@@ -457,7 +458,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
-        borderWidth: theme.isDark ? 1 : 0,
+        borderWidth: isDark ? 1 : 0,
         borderColor: theme.border,
     },
     categoryHeader: {
@@ -480,7 +481,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     },
     categoryCount: {
         fontSize: 14,
-        color: theme.subtext,
+        color: theme.textSecondary,
     },
     choreItem: {
         flexDirection: 'row',
@@ -514,12 +515,12 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
         fontWeight: '500',
     },
     choreNameCompleted: {
-        color: theme.subtext,
+        color: theme.textSecondary,
         textDecorationLine: 'line-through',
     },
     choreFrequency: {
         fontSize: 12,
-        color: theme.subtext,
+        color: theme.textSecondary,
         marginTop: 2,
     },
     assigneeBadge: {
@@ -574,7 +575,7 @@ const createStyles = (theme: ThemeColors) => StyleSheet.create({
     modalLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: theme.subtext,
+        color: theme.textSecondary,
         marginBottom: 8,
     },
     modalChips: {

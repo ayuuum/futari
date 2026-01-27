@@ -106,17 +106,17 @@ export default function SavingsScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
-        <FlatList
-            data={goals}
-            renderItem={renderGoalCard}
-            keyExtractor={(item) => item.id}
+            <FlatList
+                data={goals}
+                renderItem={renderGoalCard}
+                keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={
                     <View style={styles.summaryCard}>
                         <Text style={styles.summaryLabel}>合計貯金額</Text>
                         <Text style={styles.summaryAmount}>
-                            {formatCurrency(mockGoals.reduce((sum, g) => sum + g.currentAmount, 0))}
+                            {formatCurrency(goals.reduce((sum, g) => sum + g.current_amount, 0))}
                             <Text style={styles.summaryUnit}>円</Text>
                         </Text>
                         <View style={styles.summaryDivider} />
