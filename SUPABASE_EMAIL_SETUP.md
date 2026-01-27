@@ -1,6 +1,24 @@
 # Supabase メールテンプレート日本語化ガイド
 
-## 1. Supabaseダッシュボードでの設定
+## 0. 自動設定（推奨）
+
+スクリプトを使って自動的にメールテンプレートを設定できます：
+
+```bash
+# 1. Supabaseダッシュボードから Access Token を取得
+#    Settings → Access Tokens → Generate new token
+
+# 2. 環境変数を設定
+export SUPABASE_ACCESS_TOKEN=your_access_token
+export SUPABASE_PROJECT_ID=your_project_id
+
+# 3. スクリプトを実行
+npm run setup:email-templates
+```
+
+**注意**: Management APIが利用できない場合は、以下の手動設定方法を使用してください。
+
+## 1. Supabaseダッシュボードでの設定（手動）
 
 1. [Supabaseダッシュボード](https://app.supabase.com)にログイン
 2. プロジェクトを選択
