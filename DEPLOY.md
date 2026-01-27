@@ -58,11 +58,18 @@ netlify deploy --prod --dir=dist
 1. Vercelダッシュボードでプロジェクトを開く
 2. **Settings** → **Environment Variables** をクリック
 3. 以下の環境変数を追加：
-   - `EXPO_PUBLIC_SUPABASE_URL` = `https://your-project.supabase.co`
-   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` = `your-anon-key`
+   - `EXPO_PUBLIC_SUPABASE_URL` = `https://your-project-id.supabase.co`
+     - Supabaseダッシュボードの **Project Settings** → **API** → **Project URL** から取得
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` = `sb_publishable_...`（**Publishable key**を使用）
+     - Supabaseダッシュボードの **Project Settings** → **API** → **Publishable key** から取得
+     - ⚠️ **重要**: `sb_publishable_...` で始まるキーを使用してください（`sb_secret_...` は使用しない）
 4. **Environment** で **Production**, **Preview**, **Development** すべてにチェックを入れる
 5. **Save** をクリック
 6. **重要**: 環境変数を追加した後、**新しいデプロイメントをトリガー**する必要があります（既存のデプロイメントには反映されません）
+
+**キーの見分け方**:
+- ✅ **Publishable key** (`sb_publishable_...`) → クライアント側で使用（Vercelの環境変数に設定）
+- ❌ **Secret key** (`sb_secret_...`) → サーバー側のみで使用（Vercelの環境変数には設定しない）
 
 **環境変数が設定されていない場合**: ビルドが失敗し、404エラーが発生します。
 
