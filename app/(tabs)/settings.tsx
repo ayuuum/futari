@@ -1,5 +1,5 @@
-import { ThemeColors } from '@/constants/themes';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeColors, useThemedStyles } from '@/hooks/useThemedStyles';
 import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, router } from 'expo-router';
@@ -22,7 +22,7 @@ interface SettingItemProps {
 
 function SettingItem({ icon, title, description, href, iconColor }: SettingItemProps) {
   const { theme, isDark } = useTheme();
-  const styles = createStyles(theme, isDark);
+  const styles = useThemedStyles(createStyles);
   const color = iconColor || theme.textSecondary;
 
   return (
@@ -48,7 +48,7 @@ interface SettingSectionProps {
 
 function SettingSection({ title, children }: SettingSectionProps) {
   const { theme, isDark } = useTheme();
-  const styles = createStyles(theme, isDark);
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -61,7 +61,7 @@ function SettingSection({ title, children }: SettingSectionProps) {
 
 export default function SettingsScreen() {
   const { theme, isDark } = useTheme();
-  const styles = createStyles(theme, isDark);
+  const styles = useThemedStyles(createStyles);
   const { profile, partner, signOut } = useAuthStore();
 
   const handleLogout = () => {

@@ -34,220 +34,6 @@ interface CalendarDay {
     events: { id: string; title: string; date: string; category: string; color: string }[];
 }
 
-export default function CalendarScreen() {
-    const today = new Date();
-    const [currentYear, setCurrentYear] = useState(today.getFullYear());
-    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-    const [selectedDate, setSelectedDate] = useState<number | null>(today.getDate());
-
-    const { profile } = useAuthStore();
-    const coupleId = profile?.couple_id ?? null;
-    const monthStart = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
-    const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const monthEnd = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    const { data: events = [] } = useCalendarEvents(coupleId, monthStart, monthEnd);
-
-    const eventsWithColor = useMemo(
-        () => events.map((e) => ({ ...e, color: categoryColors[e.category] ?? '#95A5A6' })),
-        [events]
-    );
-
-    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
-    const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
-
-    const generateCalendarDays = (): CalendarDay[] => {
-        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-        const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
-        const daysInPrevMonth = getDaysInMonth(currentYear, currentMonth - 1);
-        const days: CalendarDay[] = [];
-
-        for (let i = firstDay - 1; i >= 0; i--) {
-            days.push({ date: daysInPrevMonth - i, isCurrentMonth: false, isToday: false, events: [] });
-        }
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const dayEvents = eventsWithColor.filter((e) => e.date === dateStr);
-            const isToday =
-                i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
-            days.push({ date: i, isCurrentMonth: true, isToday, events: dayEvents });
-        }
-        const remainingDays = 42 - days.length;
-        for (let i = 1; i <= remainingDays; i++) {
-            days.push({ date: i, isCurrentMonth: false, isToday: false, events: [] });
-        }
-        return days;
-    };
-
-    const goToPrevMonth = () => {
-        if (currentMonth === 0) {
-            setCurrentMonth(11);
-            setCurrentYear(currentYear - 1);
-        } else {
-            setCurrentMonth(currentMonth - 1);
-        }
-        setSelectedDate(null);
-    };
-
-    const goToNextMonth = () => {
-        if (currentMonth === 11) {
-            setCurrentMonth(0);
-            setCurrentYear(currentYear + 1);
-        } else {
-            setCurrentMonth(currentMonth + 1);
-        }
-        setSelectedDate(null);
-    };
-
-    const { theme } = useTheme();
-    const styles = useThemedStyles(createStyles);
-    const calendarDays = generateCalendarDays();
-    const selectedEvents = useMemo(() => {
-        if (!selectedDate) return [];
-        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
-        return eventsWithColor.filter(e => e.date === dateStr);
-    }, [selectedDate, eventsWithColor, currentYear, currentMonth]);
-
-    return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>📅 カレンダー</Text>
-                <Link href="/calendar-add" asChild>
-                    <TouchableOpacity style={styles.addButton}>
-                        <FontAwesome name="plus" size={18} color="#FF6B9D" />
-                    </TouchableOpacity>
-                </Link>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Month Navigation */}
-                <View style={styles.monthNav}>
-                    <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
-                        <FontAwesome name="chevron-left" size={16} color={theme.textSecondary} />
-                    </TouchableOpacity>
-                    <Text style={styles.monthTitle}>
-                        {currentYear}年 {MONTHS[currentMonth]}
-                    </Text>
-                    <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-                        <FontAwesome name="chevron-right" size={16} color={theme.textSecondary} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Calendar Grid */}
-                <View style={styles.calendarCard}>
-                    {/* Day Headers */}
-                    <View style={styles.dayHeaders}>
-                        {DAYS.map((day, index) => (
-                            <Text
-                                key={day}
-                                style={[
-                                    styles.dayHeader,
-                                    index === 0 && styles.sundayText,
-                                    index === 6 && styles.saturdayText,
-                                ]}
-                            >
-                                {day}
-                            </Text>
-                        ))}
-                    </View>
-
-                    {/* Calendar Days */}
-                    <View style={styles.daysGrid}>
-                        {calendarDays.map((day, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[
-                                    styles.dayCell,
-                                    day.isToday && styles.todayCell,
-                                    selectedDate === day.date && day.isCurrentMonth && styles.selectedCell,
-                                ]}
-                                onPress={() => day.isCurrentMonth && setSelectedDate(day.date)}
-                                disabled={!day.isCurrentMonth}
-                            >
-                                <Text
-                                    style={[
-                                        styles.dayText,
-                                        !day.isCurrentMonth && styles.otherMonthText,
-                                        day.isToday && styles.todayText,
-                                        selectedDate === day.date && day.isCurrentMonth && styles.selectedText,
-                                        index % 7 === 0 && day.isCurrentMonth && styles.sundayText,
-                                        index % 7 === 6 && day.isCurrentMonth && styles.saturdayText,
-                                    ]}
-                                >
-                                    {day.date}
-                                </Text>
-                                {day.events.length > 0 && (
-                                    <View style={styles.eventDots}>
-                                        {day.events.slice(0, 3).map((event, i) => (
-                                            <View
-                                                key={i}
-                                                style={[styles.eventDot, { backgroundColor: event.color }]}
-                                            />
-                                        ))}
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Selected Date Events */}
-                <View style={styles.eventsSection}>
-                    <Text style={styles.eventsSectionTitle}>
-                        {selectedDate ? `${currentMonth + 1}月${selectedDate}日の予定` : '日付を選択してください'}
-                    </Text>
-
-                    {selectedEvents.length > 0 ? (
-                        selectedEvents.map((event) => (
-                            <View key={event.id} style={styles.eventCard}>
-                                <View style={[styles.eventColor, { backgroundColor: event.color }]} />
-                                <View style={styles.eventInfo}>
-                                    <Text style={styles.eventTitle}>{event.title}</Text>
-                                    <Text style={styles.eventCategory}>
-                                        {event.category === 'anniversary' && '💕 記念日'}
-                                        {event.category === 'payment' && '💰 支払い'}
-                                        {event.category === 'date' && '❤️ デート'}
-                                        {event.category === 'task' && '📋 タスク'}
-                                    </Text>
-                                </View>
-                            </View>
-                        ))
-                    ) : selectedDate ? (
-                        <View style={styles.noEvents}>
-                            <Text style={styles.noEventsEmoji}>📭</Text>
-                            <Text style={styles.noEventsText}>予定はありません</Text>
-                            <Link href="/calendar-add" asChild>
-                                <TouchableOpacity style={styles.addEventButton}>
-                                    <Text style={styles.addEventButtonText}>+ 予定を追加</Text>
-                                </TouchableOpacity>
-                            </Link>
-                        </View>
-                    ) : null}
-                </View>
-
-                {/* Upcoming Events */}
-                <View style={styles.upcomingSection}>
-                    <Text style={styles.upcomingSectionTitle}>📌 今後の予定</Text>
-                    {eventsWithColor.slice(0, 5).map((event) => (
-                        <View key={event.id} style={styles.upcomingCard}>
-                            <View style={[styles.upcomingColor, { backgroundColor: event.color }]} />
-                            <View style={styles.upcomingInfo}>
-                                <Text style={styles.upcomingTitle}>{event.title}</Text>
-                                <Text style={styles.upcomingDate}>{event.date}</Text>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-
-                <View style={{ height: 40 }} />
-            </ScrollView>
-        </View>
-    );
-}
-
 const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
@@ -478,3 +264,218 @@ const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create(
         marginTop: 2,
     },
 });
+
+export default function CalendarScreen() {
+    const today = new Date();
+    const [currentYear, setCurrentYear] = useState(today.getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+    const [selectedDate, setSelectedDate] = useState<number | null>(today.getDate());
+
+    const { profile } = useAuthStore();
+    const coupleId = profile?.couple_id ?? null;
+    const monthStart = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const monthEnd = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    const { data: events = [] } = useCalendarEvents(coupleId, monthStart, monthEnd);
+
+    const eventsWithColor = useMemo(
+        () => events.map((e) => ({ ...e, color: categoryColors[e.category] ?? '#95A5A6' })),
+        [events]
+    );
+
+    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+    const generateCalendarDays = (): CalendarDay[] => {
+        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+        const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+        const daysInPrevMonth = getDaysInMonth(currentYear, currentMonth - 1);
+        const days: CalendarDay[] = [];
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            days.push({ date: daysInPrevMonth - i, isCurrentMonth: false, isToday: false, events: [] });
+        }
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const dayEvents = eventsWithColor.filter((e) => e.date === dateStr);
+            const isToday =
+                i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+            days.push({ date: i, isCurrentMonth: true, isToday, events: dayEvents });
+        }
+        const remainingDays = 42 - days.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            days.push({ date: i, isCurrentMonth: false, isToday: false, events: [] });
+        }
+        return days;
+    };
+
+    const goToPrevMonth = () => {
+        if (currentMonth === 0) {
+            setCurrentMonth(11);
+            setCurrentYear(currentYear - 1);
+        } else {
+            setCurrentMonth(currentMonth - 1);
+        }
+        setSelectedDate(null);
+    };
+
+    const goToNextMonth = () => {
+        if (currentMonth === 11) {
+            setCurrentMonth(0);
+            setCurrentYear(currentYear + 1);
+        } else {
+            setCurrentMonth(currentMonth + 1);
+        }
+        setSelectedDate(null);
+    };
+
+    const { theme } = useTheme();
+    const styles = useThemedStyles(createStyles);
+    const calendarDays = generateCalendarDays();
+    const selectedEvents = useMemo(() => {
+        if (!selectedDate) return [];
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+        return eventsWithColor.filter(e => e.date === dateStr);
+    }, [selectedDate, eventsWithColor, currentYear, currentMonth]);
+
+    return (
+        <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>📅 カレンダー</Text>
+                <Link href="/calendar-add" asChild>
+                    <TouchableOpacity style={styles.addButton}>
+                        <FontAwesome name="plus" size={18} color="#FF6B9D" />
+                    </TouchableOpacity>
+                </Link>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Month Navigation */}
+                <View style={styles.monthNav}>
+                    <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
+                        <FontAwesome name="chevron-left" size={16} color={theme.textSecondary} />
+                    </TouchableOpacity>
+                    <Text style={styles.monthTitle}>
+                        {currentYear}年 {MONTHS[currentMonth]}
+                    </Text>
+                    <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
+                        <FontAwesome name="chevron-right" size={16} color={theme.textSecondary} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Calendar Grid */}
+                <View style={styles.calendarCard}>
+                    {/* Day Headers */}
+                    <View style={styles.dayHeaders}>
+                        {DAYS.map((day, index) => (
+                            <Text
+                                key={day}
+                                style={[
+                                    styles.dayHeader,
+                                    index === 0 && styles.sundayText,
+                                    index === 6 && styles.saturdayText,
+                                ]}
+                            >
+                                {day}
+                            </Text>
+                        ))}
+                    </View>
+
+                    {/* Calendar Days */}
+                    <View style={styles.daysGrid}>
+                        {calendarDays.map((day, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.dayCell,
+                                    day.isToday && styles.todayCell,
+                                    selectedDate === day.date && day.isCurrentMonth && styles.selectedCell,
+                                ]}
+                                onPress={() => day.isCurrentMonth && setSelectedDate(day.date)}
+                                disabled={!day.isCurrentMonth}
+                            >
+                                <Text
+                                    style={[
+                                        styles.dayText,
+                                        !day.isCurrentMonth && styles.otherMonthText,
+                                        day.isToday && styles.todayText,
+                                        selectedDate === day.date && day.isCurrentMonth && styles.selectedText,
+                                        index % 7 === 0 && day.isCurrentMonth && styles.sundayText,
+                                        index % 7 === 6 && day.isCurrentMonth && styles.saturdayText,
+                                    ]}
+                                >
+                                    {day.date}
+                                </Text>
+                                {day.events.length > 0 && (
+                                    <View style={styles.eventDots}>
+                                        {day.events.slice(0, 3).map((event, i) => (
+                                            <View
+                                                key={i}
+                                                style={[styles.eventDot, { backgroundColor: event.color }]}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Selected Date Events */}
+                <View style={styles.eventsSection}>
+                    <Text style={styles.eventsSectionTitle}>
+                        {selectedDate ? `${currentMonth + 1}月${selectedDate}日の予定` : '日付を選択してください'}
+                    </Text>
+
+                    {selectedEvents.length > 0 ? (
+                        selectedEvents.map((event) => (
+                            <View key={event.id} style={styles.eventCard}>
+                                <View style={[styles.eventColor, { backgroundColor: event.color }]} />
+                                <View style={styles.eventInfo}>
+                                    <Text style={styles.eventTitle}>{event.title}</Text>
+                                    <Text style={styles.eventCategory}>
+                                        {event.category === 'anniversary' && '💕 記念日'}
+                                        {event.category === 'payment' && '💰 支払い'}
+                                        {event.category === 'date' && '❤️ デート'}
+                                        {event.category === 'task' && '📋 タスク'}
+                                    </Text>
+                                </View>
+                            </View>
+                        ))
+                    ) : selectedDate ? (
+                        <View style={styles.noEvents}>
+                            <Text style={styles.noEventsEmoji}>📭</Text>
+                            <Text style={styles.noEventsText}>予定はありません</Text>
+                            <Link href="/calendar-add" asChild>
+                                <TouchableOpacity style={styles.addEventButton}>
+                                    <Text style={styles.addEventButtonText}>+ 予定を追加</Text>
+                                </TouchableOpacity>
+                            </Link>
+                        </View>
+                    ) : null}
+                </View>
+
+                {/* Upcoming Events */}
+                <View style={styles.upcomingSection}>
+                    <Text style={styles.upcomingSectionTitle}>📌 今後の予定</Text>
+                    {eventsWithColor.slice(0, 5).map((event) => (
+                        <View key={event.id} style={styles.upcomingCard}>
+                            <View style={[styles.upcomingColor, { backgroundColor: event.color }]} />
+                            <View style={styles.upcomingInfo}>
+                                <Text style={styles.upcomingTitle}>{event.title}</Text>
+                                <Text style={styles.upcomingDate}>{event.date}</Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={{ height: 40 }} />
+            </ScrollView>
+        </View>
+    );
+}
+

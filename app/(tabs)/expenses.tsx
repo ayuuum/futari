@@ -35,6 +35,159 @@ const categoryColors: Record<string, string> = {
     医療費: '#E74C3C',
 };
 
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.background,
+    },
+    summarySection: {
+        backgroundColor: theme.card,
+        padding: 20,
+        marginBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+    },
+    summaryLabel: {
+        fontSize: 14,
+        color: theme.textSecondary,
+    },
+    summaryAmount: {
+        fontSize: 32,
+        fontWeight: '700',
+        color: theme.text,
+        marginVertical: 8,
+    },
+    shareRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        gap: 24,
+        marginVertical: 12,
+    },
+    shareItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    avatarCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    avatarText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    shareAmount: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.text,
+    },
+    categoryBar: {
+        flexDirection: 'row',
+        height: 8,
+        marginTop: 8,
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    categorySegment: {
+        height: '100%',
+    },
+    categoryFilter: {
+        backgroundColor: theme.card,
+        maxHeight: 60,
+    },
+    categoryFilterContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        gap: 8,
+    },
+    categoryChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: isDark ? '#333' : '#f5f5f5',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginRight: 8,
+    },
+    categoryChipActive: {
+        backgroundColor: theme.primary,
+    },
+    categoryEmoji: {
+        fontSize: 14,
+        marginRight: 4,
+    },
+    categoryText: {
+        fontSize: 13,
+        color: theme.textSecondary,
+    },
+    categoryTextActive: {
+        color: '#fff',
+        fontWeight: '600',
+    },
+    expenseList: {
+        flex: 1,
+        marginTop: 8,
+    },
+    expenseListContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 100,
+    },
+    expenseItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: theme.card,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
+    },
+    expenseLeft: {
+        flex: 1,
+    },
+    expenseDescription: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: theme.text,
+        marginBottom: 4,
+    },
+    expenseMeta: {
+        fontSize: 12,
+        color: theme.textSecondary,
+    },
+    expenseAmount: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.text,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: theme.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: theme.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    fabText: {
+        fontSize: 28,
+        color: '#fff',
+        fontWeight: '300',
+    },
+});
+
 export default function ExpensesScreen() {
     const { theme } = useTheme();
     const styles = useThemedStyles(createStyles);
@@ -192,155 +345,3 @@ export default function ExpensesScreen() {
     );
 }
 
-const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.background,
-    },
-    summarySection: {
-        backgroundColor: theme.card,
-        padding: 20,
-        marginBottom: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
-    },
-    summaryLabel: {
-        fontSize: 14,
-        color: theme.textSecondary,
-    },
-    summaryAmount: {
-        fontSize: 32,
-        fontWeight: '700',
-        color: theme.text,
-        marginVertical: 8,
-    },
-    shareRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        gap: 24,
-        marginVertical: 12,
-    },
-    shareItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    avatarCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatarText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    shareAmount: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: theme.text,
-    },
-    categoryBar: {
-        flexDirection: 'row',
-        height: 8,
-        marginTop: 8,
-        borderRadius: 4,
-        overflow: 'hidden',
-    },
-    categorySegment: {
-        height: '100%',
-    },
-    categoryFilter: {
-        backgroundColor: theme.card,
-        maxHeight: 60,
-    },
-    categoryFilterContent: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        gap: 8,
-    },
-    categoryChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: isDark ? '#333' : '#f5f5f5',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        marginRight: 8,
-    },
-    categoryChipActive: {
-        backgroundColor: theme.primary,
-    },
-    categoryEmoji: {
-        fontSize: 14,
-        marginRight: 4,
-    },
-    categoryText: {
-        fontSize: 13,
-        color: theme.textSecondary,
-    },
-    categoryTextActive: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    expenseList: {
-        flex: 1,
-        marginTop: 8,
-    },
-    expenseListContent: {
-        paddingHorizontal: 16,
-        paddingBottom: 100,
-    },
-    expenseItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: theme.card,
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 8,
-        borderWidth: isDark ? 1 : 0,
-        borderColor: theme.border,
-    },
-    expenseLeft: {
-        flex: 1,
-    },
-    expenseDescription: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: theme.text,
-        marginBottom: 4,
-    },
-    expenseMeta: {
-        fontSize: 12,
-        color: theme.textSecondary,
-    },
-    expenseAmount: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: theme.text,
-    },
-    fab: {
-        position: 'absolute',
-        right: 20,
-        bottom: 20,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: theme.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: theme.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    fabText: {
-        fontSize: 28,
-        color: '#fff',
-        fontWeight: '300',
-    },
-});

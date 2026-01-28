@@ -1,4 +1,7 @@
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeColors, useThemedStyles } from '@/hooks/useThemedStyles';
 import { useCouple } from '@/lib/queries';
+import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as Clipboard from 'expo-clipboard';
@@ -15,9 +18,10 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { supabase } from '@/lib/supabase';
 
 export default function InviteScreen() {
+    const { theme, isDark } = useTheme();
+    const styles = useThemedStyles(createStyles);
     const [mode, setMode] = useState<'share' | 'join'>('share');
     const [inputCode, setInputCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -89,13 +93,13 @@ export default function InviteScreen() {
             <View style={styles.container}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <FontAwesome name="arrow-left" size={20} color="#333" />
+                        <FontAwesome name="arrow-left" size={20} color={theme.text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>💑 パートナーを招待</Text>
                     <View style={{ width: 40 }} />
                 </View>
-                <View style={[styles.content, { padding: 24 }]}>
-                    <Text style={{ fontSize: 16, color: '#666', textAlign: 'center' }}>すでにパートナーと連携しています</Text>
+                <View style={[styles.content, { padding: 24, justifyContent: 'center', alignItems: 'center' }]}>
+                    <Text style={{ fontSize: 16, color: theme.textSecondary, textAlign: 'center' }}>すでにパートナーと連携しています</Text>
                 </View>
             </View>
         );
@@ -106,7 +110,7 @@ export default function InviteScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>💑 パートナーを招待</Text>
                 <View style={{ width: 40 }} />
@@ -143,7 +147,7 @@ export default function InviteScreen() {
                                 <FontAwesome
                                     name={copied ? 'check' : 'copy'}
                                     size={18}
-                                    color={copied ? '#4ECDC4' : '#FF6B9D'}
+                                    color={copied ? theme.success : theme.primary}
                                 />
                             </TouchableOpacity>
                         </View>
@@ -193,7 +197,7 @@ export default function InviteScreen() {
                         <TextInput
                             style={styles.codeInput}
                             placeholder="XXXXXX"
-                            placeholderTextColor="#ccc"
+                            placeholderTextColor={theme.textMuted}
                             value={inputCode}
                             onChangeText={(text) => setInputCode(text.toUpperCase())}
                             maxLength={6}
@@ -236,10 +240,10 @@ export default function InviteScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
@@ -248,6 +252,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -255,14 +260,16 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     modeToggle: {
         flexDirection: 'row',
         marginHorizontal: 16,
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         padding: 4,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     modeButton: {
         flex: 1,
@@ -271,12 +278,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modeButtonActive: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
     },
     modeButtonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
     },
     modeButtonTextActive: {
         color: '#fff',
@@ -286,7 +293,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     codeCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -296,10 +303,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     codeLabel: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         marginBottom: 12,
     },
     codeRow: {
@@ -310,18 +319,18 @@ const styles = StyleSheet.create({
     codeText: {
         fontSize: 36,
         fontWeight: '700',
-        color: '#FF6B9D',
+        color: theme.primary,
         letterSpacing: 8,
     },
     copyButton: {
         padding: 12,
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         borderRadius: 12,
     },
     copiedText: {
         marginTop: 8,
         fontSize: 13,
-        color: '#4ECDC4',
+        color: theme.success,
     },
     instructions: {
         marginTop: 32,
@@ -329,7 +338,7 @@ const styles = StyleSheet.create({
     instructionsTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 16,
     },
     step: {
@@ -342,7 +351,7 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -354,14 +363,14 @@ const styles = StyleSheet.create({
     stepText: {
         flex: 1,
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         lineHeight: 22,
     },
     shareButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         borderRadius: 12,
         paddingVertical: 16,
         gap: 8,
@@ -373,7 +382,7 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     joinCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 24,
         alignItems: 'center',
@@ -383,42 +392,44 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     joinLabel: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         marginBottom: 16,
     },
     codeInput: {
         width: '100%',
-        backgroundColor: '#f8f8f8',
+        backgroundColor: theme.backgroundSecondary,
         borderRadius: 12,
         paddingVertical: 16,
         paddingHorizontal: 20,
         fontSize: 24,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
         textAlign: 'center',
         letterSpacing: 6,
     },
     joinHint: {
         marginTop: 12,
         fontSize: 13,
-        color: '#999',
+        color: theme.textMuted,
         textAlign: 'center',
     },
     joinButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         borderRadius: 12,
         paddingVertical: 16,
         gap: 8,
         marginTop: 24,
     },
     joinButtonDisabled: {
-        backgroundColor: '#fcc',
+        opacity: 0.5,
     },
     joinButtonText: {
         fontSize: 16,
@@ -432,6 +443,6 @@ const styles = StyleSheet.create({
     },
     skipText: {
         fontSize: 14,
-        color: '#999',
+        color: theme.textMuted,
     },
 });

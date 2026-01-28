@@ -53,253 +53,6 @@ function nextAnniversaryFrom(anniversaries: { date: string; title: string; emoji
   return first ? { title: first.title, emoji: first.emoji ?? '💕', daysUntil: first.daysUntil, years: first.years } : null;
 }
 
-export default function HomeScreen() {
-  const { theme, isDark } = useTheme();
-  const styles = useThemedStyles(createStyles);
-  const { profile, partner } = useAuthStore();
-  const coupleId = profile?.couple_id ?? null;
-  const myId = profile?.id ?? '';
-
-  const { data: expenses = [] } = useExpenses(coupleId);
-  const { data: recentExpenses = [] } = useRecentExpenses(coupleId, 5);
-  const { data: chores = [] } = useChores(coupleId);
-  const { data: completions = [] } = useChoreCompletionsThisWeek(coupleId);
-  const { data: shoppingItems = [] } = useShoppingItems(coupleId);
-  const { data: anniversaries = [] } = useAnniversaries(coupleId);
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const { data: todayEvents = [] } = useCalendarEvents(coupleId, todayStr, todayStr);
-  const { data: savingsGoals = [] } = useSavingsGoals(coupleId);
-
-  const partnerName = partner?.display_name ?? 'パートナー';
-
-  const thisMonth = useMemo(() => {
-    const total = expenses.reduce((s, e) => s + e.amount, 0);
-    const myShare = expenses.filter((e) => e.paid_by === myId).reduce((s, e) => s + e.amount, 0);
-    const partnerShare = expenses.filter((e) => e.paid_by !== myId).reduce((s, e) => s + e.amount, 0);
-    return { totalExpenses: total, myShare, partnerShare };
-  }, [expenses, myId]);
-
-  const choresStats = useMemo(() => {
-    const myCompleted = completions.filter((c) => c.completed_by === myId).length;
-    const partnerCompleted = completions.filter((c) => c.completed_by !== myId).length;
-    return { myCompleted, partnerCompleted, pending: chores.length };
-  }, [completions, myId, chores.length]);
-
-  const nextAnn = useMemo(() => nextAnniversaryFrom(anniversaries), [anniversaries]);
-  const pendingShopping = shoppingItems.filter((i) => !i.is_purchased).length;
-  const totalSavings = savingsGoals.reduce((s, g) => s + g.current_amount, 0);
-  const mainGoal = savingsGoals[0];
-  const mainGoalPct = mainGoal
-    ? Math.min(100, Math.round((mainGoal.current_amount / mainGoal.target_amount) * 100))
-    : 0;
-
-  const isLoading = !coupleId && profile !== null;
-  const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
-
-  if (profile && !coupleId) {
-    return (
-      <View style={[styles.container, { padding: 24, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.welcomeText}>パートナーを招待して連携しよう</Text>
-        <Link href="/invite" asChild>
-          <TouchableOpacity style={{ marginTop: 16, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: theme.primary, borderRadius: 12 }}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>招待する</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.primary} testID="loading" />
-      </View>
-    );
-  }
-
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeEmoji}>💑</Text>
-        <Text style={styles.welcomeText}>おかえりなさい！</Text>
-        <Text style={styles.partnerText}>
-          {partnerName}さんと一緒に頑張っています
-        </Text>
-      </View>
-
-      {nextAnn && nextAnn.daysUntil <= 30 && (
-        <Link href="/anniversaries" asChild>
-          <TouchableOpacity style={styles.anniversaryBanner}>
-            <Text style={styles.anniversaryEmoji}>{nextAnn.emoji}</Text>
-            <View style={styles.anniversaryInfo}>
-              <Text style={styles.anniversaryTitle}>{nextAnn.title}</Text>
-              <Text style={styles.anniversarySubtext}>
-                あと{nextAnn.daysUntil}日 • {nextAnn.years + 1}周年
-              </Text>
-            </View>
-            <View style={styles.anniversaryDays}>
-              <Text style={styles.anniversaryDaysNumber}>{nextAnn.daysUntil}</Text>
-              <Text style={styles.anniversaryDaysLabel}>日後</Text>
-            </View>
-          </TouchableOpacity>
-        </Link>
-      )}
-
-      {todayEvents.length > 0 && (
-        <Link href="/calendar" asChild>
-          <TouchableOpacity style={styles.todayCard}>
-            <View style={styles.todayHeader}>
-              <Text style={styles.todayIcon}>📅</Text>
-              <Text style={styles.todayTitle}>今日の予定</Text>
-            </View>
-            {todayEvents.map((event) => (
-              <View key={event.id} style={styles.todayEvent}>
-                <Text style={styles.todayEventTitle}>{event.title}</Text>
-                <Text style={styles.todayEventTime}>--</Text>
-              </View>
-            ))}
-          </TouchableOpacity>
-        </Link>
-      )}
-
-      <View style={styles.summaryCard}>
-        <Text style={styles.cardTitle}>📊 今月の家計</Text>
-        <Text style={styles.totalAmount}>¥{formatCurrency(thisMonth.totalExpenses)}</Text>
-        <View style={styles.shareRow}>
-          <View style={styles.shareItem}>
-            <Text style={styles.shareLabel}>あなた</Text>
-            <Text style={styles.shareAmount}>¥{formatCurrency(thisMonth.myShare)}</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.shareItem}>
-            <Text style={styles.shareLabel}>{partnerName}</Text>
-            <Text style={styles.shareAmount}>¥{formatCurrency(thisMonth.partnerShare)}</Text>
-          </View>
-        </View>
-        <View style={styles.balanceRow}>
-          <Text style={styles.balanceText}>
-            差額: <Text style={styles.balanceAmount}>¥{formatCurrency(Math.abs(thisMonth.myShare - thisMonth.partnerShare))}</Text>
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.quickActionsGrid}>
-        {[
-          { href: '/expenses/add', emoji: '💰', label: '支出追加' },
-          { href: '/savings', emoji: '🏦', label: '共同貯金' },
-          { href: '/calendar', emoji: '📅', label: '予定' },
-          { href: '/report', emoji: '📊', label: '分析' },
-        ].map((action, idx) => (
-          <Link key={idx} href={action.href as any} asChild>
-            <TouchableOpacity style={styles.actionButtonSmall} testID={action.label === '支出追加' ? 'add-expense-button' : undefined}>
-              <Text style={styles.actionEmoji}>{action.emoji}</Text>
-              <Text style={styles.actionTextSmall}>{action.label}</Text>
-            </TouchableOpacity>
-          </Link>
-        ))}
-      </View>
-
-      <Link href="/savings" asChild>
-        <TouchableOpacity style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>💰 共同貯金</Text>
-            <Text style={styles.seeAllText}>一覧を見る →</Text>
-          </View>
-          {mainGoal ? (
-            <View style={styles.savingsSummary}>
-              <View style={styles.savingsHeader}>
-                <Text style={styles.savingsGoalTitle}>{mainGoal.title}</Text>
-                <Text style={styles.savingsGoalPercentage}>{mainGoalPct}%</Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View
-                  style={[
-                    styles.progressBarFill,
-                    { width: `${mainGoalPct}%`, backgroundColor: theme.primary },
-                  ]}
-                />
-              </View>
-              <View style={styles.savingsFooter}>
-                <Text style={styles.savingsCurrentAmount}>
-                  ¥{formatCurrency(mainGoal.current_amount)}
-                  <Text style={styles.savingsTargetAmount}> / ¥{formatCurrency(mainGoal.target_amount)}</Text>
-                </Text>
-                <Text style={styles.savingsTotalLabel}>合計: ¥{formatCurrency(totalSavings)}</Text>
-              </View>
-            </View>
-          ) : (
-            <Text style={[styles.seeAllText, { paddingVertical: 12 }]}>目標を追加しよう</Text>
-          )}
-        </TouchableOpacity>
-      </Link>
-
-      <View style={styles.sectionCard}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🧹 今週の家事</Text>
-          <Link href="/(tabs)/chores" asChild>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>すべて見る →</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-        <View style={styles.choresSummary}>
-          <View style={styles.choresProgress}>
-            <View style={styles.progressItem}>
-              <Text style={styles.progressNumber}>{choresStats.myCompleted}</Text>
-              <Text style={styles.progressLabel}>あなた</Text>
-            </View>
-            <Text style={styles.vsText}>vs</Text>
-            <View style={styles.progressItem}>
-              <Text style={[styles.progressNumber, { color: theme.secondary }]}>{choresStats.partnerCompleted}</Text>
-              <Text style={styles.progressLabel}>{partnerName}</Text>
-            </View>
-          </View>
-          {choresStats.pending > 0 && (
-            <Text style={styles.pendingText}>残り{choresStats.pending}件のタスク</Text>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.sectionCard}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>💸 最近の支出</Text>
-          <Link href="/(tabs)/expenses" asChild>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>すべて見る →</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-        {recentExpenses.length === 0 ? (
-          <Text style={[styles.expenseDescription, { paddingVertical: 12, color: theme.textSecondary }]}>今月はまだ支出がありません</Text>
-        ) : (
-          recentExpenses.map((expense) => (
-            <View key={expense.id} style={styles.expenseItem}>
-              <View style={styles.expenseLeft}>
-                <Text style={styles.expenseDescription}>{expense.description ?? ''}</Text>
-                <Text style={styles.expenseCategory}>{expense.category} • {formatRelativeDate(expense.date)}</Text>
-              </View>
-              <Text style={styles.expenseAmount}>¥{formatCurrency(expense.amount)}</Text>
-            </View>
-          ))
-        )}
-      </View>
-
-      {pendingShopping > 0 && (
-        <Link href="/(tabs)/shopping" asChild>
-          <TouchableOpacity style={styles.shoppingBanner}>
-            <Text style={styles.shoppingEmoji}>🛒</Text>
-            <Text style={styles.shoppingText}>
-              買い物リストに{pendingShopping}件のアイテムがあります
-            </Text>
-          </TouchableOpacity>
-        </Link>
-      )}
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
-  );
-}
-
 const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
@@ -661,3 +414,251 @@ const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create(
     borderRadius: 4,
   },
 });
+
+export default function HomeScreen() {
+  const { theme, isDark } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const { profile, partner } = useAuthStore();
+  const coupleId = profile?.couple_id ?? null;
+  const myId = profile?.id ?? '';
+
+  const { data: expenses = [] } = useExpenses(coupleId);
+  const { data: recentExpenses = [] } = useRecentExpenses(coupleId, 5);
+  const { data: chores = [] } = useChores(coupleId);
+  const { data: completions = [] } = useChoreCompletionsThisWeek(coupleId);
+  const { data: shoppingItems = [] } = useShoppingItems(coupleId);
+  const { data: anniversaries = [] } = useAnniversaries(coupleId);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const { data: todayEvents = [] } = useCalendarEvents(coupleId, todayStr, todayStr);
+  const { data: savingsGoals = [] } = useSavingsGoals(coupleId);
+
+  const partnerName = partner?.display_name ?? 'パートナー';
+
+  const thisMonth = useMemo(() => {
+    const total = expenses.reduce((s, e) => s + e.amount, 0);
+    const myShare = expenses.filter((e) => e.paid_by === myId).reduce((s, e) => s + e.amount, 0);
+    const partnerShare = expenses.filter((e) => e.paid_by !== myId).reduce((s, e) => s + e.amount, 0);
+    return { totalExpenses: total, myShare, partnerShare };
+  }, [expenses, myId]);
+
+  const choresStats = useMemo(() => {
+    const myCompleted = completions.filter((c) => c.completed_by === myId).length;
+    const partnerCompleted = completions.filter((c) => c.completed_by !== myId).length;
+    return { myCompleted, partnerCompleted, pending: chores.length };
+  }, [completions, myId, chores.length]);
+
+  const nextAnn = useMemo(() => nextAnniversaryFrom(anniversaries), [anniversaries]);
+  const pendingShopping = shoppingItems.filter((i) => !i.is_purchased).length;
+  const totalSavings = savingsGoals.reduce((s, g) => s + g.current_amount, 0);
+  const mainGoal = savingsGoals[0];
+  const mainGoalPct = mainGoal
+    ? Math.min(100, Math.round((mainGoal.current_amount / mainGoal.target_amount) * 100))
+    : 0;
+
+  const isLoading = !coupleId && profile !== null;
+  const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
+
+  if (profile && !coupleId) {
+    return (
+      <View style={[styles.container, { padding: 24, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.welcomeText}>パートナーを招待して連携しよう</Text>
+        <Link href="/invite" asChild>
+          <TouchableOpacity style={{ marginTop: 16, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: theme.primary, borderRadius: 12 }}>
+            <Text style={{ color: '#fff', fontWeight: '600' }}>招待する</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.primary} testID="loading" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.welcomeSection}>
+        <Text style={styles.welcomeEmoji}>💑</Text>
+        <Text style={styles.welcomeText}>おかえりなさい！</Text>
+        <Text style={styles.partnerText}>
+          {partnerName}さんと一緒に頑張っています
+        </Text>
+      </View>
+
+      {nextAnn && nextAnn.daysUntil <= 30 && (
+        <Link href="/anniversaries" asChild>
+          <TouchableOpacity style={styles.anniversaryBanner}>
+            <Text style={styles.anniversaryEmoji}>{nextAnn.emoji}</Text>
+            <View style={styles.anniversaryInfo}>
+              <Text style={styles.anniversaryTitle}>{nextAnn.title}</Text>
+              <Text style={styles.anniversarySubtext}>
+                あと{nextAnn.daysUntil}日 • {nextAnn.years + 1}周年
+              </Text>
+            </View>
+            <View style={styles.anniversaryDays}>
+              <Text style={styles.anniversaryDaysNumber}>{nextAnn.daysUntil}</Text>
+              <Text style={styles.anniversaryDaysLabel}>日後</Text>
+            </View>
+          </TouchableOpacity>
+        </Link>
+      )}
+
+      {todayEvents.length > 0 && (
+        <Link href="/calendar" asChild>
+          <TouchableOpacity style={styles.todayCard}>
+            <View style={styles.todayHeader}>
+              <Text style={styles.todayIcon}>📅</Text>
+              <Text style={styles.todayTitle}>今日の予定</Text>
+            </View>
+            {todayEvents.map((event) => (
+              <View key={event.id} style={styles.todayEvent}>
+                <Text style={styles.todayEventTitle}>{event.title}</Text>
+                <Text style={styles.todayEventTime}>--</Text>
+              </View>
+            ))}
+          </TouchableOpacity>
+        </Link>
+      )}
+
+      <View style={styles.summaryCard}>
+        <Text style={styles.cardTitle}>📊 今月の家計</Text>
+        <Text style={styles.totalAmount}>¥{formatCurrency(thisMonth.totalExpenses)}</Text>
+        <View style={styles.shareRow}>
+          <View style={styles.shareItem}>
+            <Text style={styles.shareLabel}>あなた</Text>
+            <Text style={styles.shareAmount}>¥{formatCurrency(thisMonth.myShare)}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.shareItem}>
+            <Text style={styles.shareLabel}>{partnerName}</Text>
+            <Text style={styles.shareAmount}>¥{formatCurrency(thisMonth.partnerShare)}</Text>
+          </View>
+        </View>
+        <View style={styles.balanceRow}>
+          <Text style={styles.balanceText}>
+            差額: <Text style={styles.balanceAmount}>¥{formatCurrency(Math.abs(thisMonth.myShare - thisMonth.partnerShare))}</Text>
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.quickActionsGrid}>
+        {[
+          { href: '/expenses/add', emoji: '💰', label: '支出追加' },
+          { href: '/savings', emoji: '🏦', label: '共同貯金' },
+          { href: '/calendar', emoji: '📅', label: '予定' },
+          { href: '/report', emoji: '📊', label: '分析' },
+        ].map((action, idx) => (
+          <Link key={idx} href={action.href as any} asChild>
+            <TouchableOpacity style={styles.actionButtonSmall} testID={action.label === '支出追加' ? 'add-expense-button' : undefined}>
+              <Text style={styles.actionEmoji}>{action.emoji}</Text>
+              <Text style={styles.actionTextSmall}>{action.label}</Text>
+            </TouchableOpacity>
+          </Link>
+        ))}
+      </View>
+
+      <Link href="/savings" asChild>
+        <TouchableOpacity style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>💰 共同貯金</Text>
+            <Text style={styles.seeAllText}>一覧を見る →</Text>
+          </View>
+          {mainGoal ? (
+            <View style={styles.savingsSummary}>
+              <View style={styles.savingsHeader}>
+                <Text style={styles.savingsGoalTitle}>{mainGoal.title}</Text>
+                <Text style={styles.savingsGoalPercentage}>{mainGoalPct}%</Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { width: `${mainGoalPct}%`, backgroundColor: theme.primary },
+                  ]}
+                />
+              </View>
+              <View style={styles.savingsFooter}>
+                <Text style={styles.savingsCurrentAmount}>
+                  ¥{formatCurrency(mainGoal.current_amount)}
+                  <Text style={styles.savingsTargetAmount}> / ¥{formatCurrency(mainGoal.target_amount)}</Text>
+                </Text>
+                <Text style={styles.savingsTotalLabel}>合計: ¥{formatCurrency(totalSavings)}</Text>
+              </View>
+            </View>
+          ) : (
+            <Text style={[styles.seeAllText, { paddingVertical: 12 }]}>目標を追加しよう</Text>
+          )}
+        </TouchableOpacity>
+      </Link>
+
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>🧹 今週の家事</Text>
+          <Link href="/(tabs)/chores" asChild>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>すべて見る →</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+        <View style={styles.choresSummary}>
+          <View style={styles.choresProgress}>
+            <View style={styles.progressItem}>
+              <Text style={styles.progressNumber}>{choresStats.myCompleted}</Text>
+              <Text style={styles.progressLabel}>あなた</Text>
+            </View>
+            <Text style={styles.vsText}>vs</Text>
+            <View style={styles.progressItem}>
+              <Text style={[styles.progressNumber, { color: theme.secondary }]}>{choresStats.partnerCompleted}</Text>
+              <Text style={styles.progressLabel}>{partnerName}</Text>
+            </View>
+          </View>
+          {choresStats.pending > 0 && (
+            <Text style={styles.pendingText}>残り{choresStats.pending}件のタスク</Text>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>💸 最近の支出</Text>
+          <Link href="/(tabs)/expenses" asChild>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>すべて見る →</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+        {recentExpenses.length === 0 ? (
+          <Text style={[styles.expenseDescription, { paddingVertical: 12, color: theme.textSecondary }]}>今月はまだ支出がありません</Text>
+        ) : (
+          recentExpenses.map((expense) => (
+            <View key={expense.id} style={styles.expenseItem}>
+              <View style={styles.expenseLeft}>
+                <Text style={styles.expenseDescription}>{expense.description ?? ''}</Text>
+                <Text style={styles.expenseCategory}>{expense.category} • {formatRelativeDate(expense.date)}</Text>
+              </View>
+              <Text style={styles.expenseAmount}>¥{formatCurrency(expense.amount)}</Text>
+            </View>
+          ))
+        )}
+      </View>
+
+      {pendingShopping > 0 && (
+        <Link href="/(tabs)/shopping" asChild>
+          <TouchableOpacity style={styles.shoppingBanner}>
+            <Text style={styles.shoppingEmoji}>🛒</Text>
+            <Text style={styles.shoppingText}>
+              買い物リストに{pendingShopping}件のアイテムがあります
+            </Text>
+          </TouchableOpacity>
+        </Link>
+      )}
+
+      <View style={{ height: 40 }} />
+    </ScrollView>
+  );
+}
+

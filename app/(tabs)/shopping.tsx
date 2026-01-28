@@ -14,6 +14,184 @@ import {
     View,
 } from 'react-native';
 
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.background,
+    },
+    inputSection: {
+        flexDirection: 'row',
+        padding: 16,
+        gap: 12,
+        backgroundColor: theme.card,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.border,
+    },
+    input: {
+        flex: 1,
+        backgroundColor: isDark ? '#333' : '#f5f5f5',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: theme.text,
+    },
+    addButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 24,
+        fontWeight: '300',
+    },
+    summarySection: {
+        flexDirection: 'row',
+        backgroundColor: theme.card,
+        paddingVertical: 16,
+        marginBottom: 8,
+        justifyContent: 'center',
+    },
+    summaryItem: {
+        alignItems: 'center',
+        paddingHorizontal: 32,
+    },
+    summaryNumber: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: theme.text,
+    },
+    summaryLabel: {
+        fontSize: 12,
+        color: theme.textSecondary,
+        marginTop: 4,
+    },
+    summaryDivider: {
+        width: 1,
+        backgroundColor: theme.border,
+    },
+    listContainer: {
+        flex: 1,
+    },
+    section: {
+        paddingHorizontal: 16,
+        paddingTop: 8,
+    },
+    sectionHeader: {
+        paddingVertical: 8,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.text,
+        marginBottom: 12,
+    },
+    sectionTitleMuted: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: theme.textSecondary,
+        marginBottom: 8,
+    },
+    itemCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: theme.card,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
+        elevation: 1,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
+    },
+    itemCardPurchased: {
+        backgroundColor: isDark ? '#222' : '#f9f9f9',
+    },
+    itemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: theme.border,
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    checkmark: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    itemInfo: {
+        flex: 1,
+    },
+    itemName: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: theme.text,
+        marginBottom: 4,
+    },
+    itemNamePurchased: {
+        color: theme.textSecondary,
+        textDecorationLine: 'line-through',
+    },
+    itemMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    categoryBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+    },
+    categoryText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '600',
+    },
+    itemPrice: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: theme.text,
+    },
+    itemPricePurchased: {
+        color: theme.textSecondary,
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 32,
+    },
+    emptyEmoji: {
+        fontSize: 48,
+        marginBottom: 12,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: theme.textSecondary,
+    },
+    showCompletedButton: {
+        alignItems: 'center',
+        paddingVertical: 12,
+        marginHorizontal: 16,
+    },
+    showCompletedText: {
+        color: theme.textSecondary,
+        fontSize: 14,
+    },
+});
+
 export default function ShoppingScreen() {
     const { theme } = useTheme();
     const styles = useThemedStyles(createStyles);
@@ -214,180 +392,3 @@ export default function ShoppingScreen() {
     );
 }
 
-const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.background,
-    },
-    inputSection: {
-        flexDirection: 'row',
-        padding: 16,
-        gap: 12,
-        backgroundColor: theme.card,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
-    },
-    input: {
-        flex: 1,
-        backgroundColor: isDark ? '#333' : '#f5f5f5',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: theme.text,
-    },
-    addButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    addButtonText: {
-        color: '#fff',
-        fontSize: 24,
-        fontWeight: '300',
-    },
-    summarySection: {
-        flexDirection: 'row',
-        backgroundColor: theme.card,
-        paddingVertical: 16,
-        marginBottom: 8,
-        justifyContent: 'center',
-    },
-    summaryItem: {
-        alignItems: 'center',
-        paddingHorizontal: 32,
-    },
-    summaryNumber: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: theme.text,
-    },
-    summaryLabel: {
-        fontSize: 12,
-        color: theme.textSecondary,
-        marginTop: 4,
-    },
-    summaryDivider: {
-        width: 1,
-        backgroundColor: theme.border,
-    },
-    listContainer: {
-        flex: 1,
-    },
-    section: {
-        paddingHorizontal: 16,
-        paddingTop: 8,
-    },
-    sectionHeader: {
-        paddingVertical: 8,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: theme.text,
-        marginBottom: 12,
-    },
-    sectionTitleMuted: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: theme.textSecondary,
-        marginBottom: 8,
-    },
-    itemCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: theme.card,
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-        elevation: 1,
-        borderWidth: isDark ? 1 : 0,
-        borderColor: theme.border,
-    },
-    itemCardPurchased: {
-        backgroundColor: isDark ? '#222' : '#f9f9f9',
-    },
-    itemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    checkbox: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: theme.border,
-        marginRight: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkmark: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '700',
-    },
-    itemInfo: {
-        flex: 1,
-    },
-    itemName: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: theme.text,
-        marginBottom: 4,
-    },
-    itemNamePurchased: {
-        color: theme.textSecondary,
-        textDecorationLine: 'line-through',
-    },
-    itemMeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    categoryBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 8,
-    },
-    categoryText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: '600',
-    },
-    itemPrice: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: theme.text,
-    },
-    itemPricePurchased: {
-        color: theme.textSecondary,
-    },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 32,
-    },
-    emptyEmoji: {
-        fontSize: 48,
-        marginBottom: 12,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: theme.textSecondary,
-    },
-    showCompletedButton: {
-        alignItems: 'center',
-        paddingVertical: 12,
-        marginHorizontal: 16,
-    },
-    showCompletedText: {
-        color: theme.textSecondary,
-        fontSize: 14,
-    },
-});

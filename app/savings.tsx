@@ -15,125 +15,6 @@ import {
     View,
 } from 'react-native';
 
-export default function SavingsScreen() {
-    const { theme } = useTheme();
-    const styles = useThemedStyles(createStyles);
-    const { profile } = useAuthStore();
-    const coupleId = profile?.couple_id ?? null;
-    const { data: goals = [], isLoading } = useSavingsGoals(coupleId);
-
-    const getDaysRemaining = (deadline: string | null) => {
-        if (!deadline) return 0;
-        const today = new Date();
-        const target = new Date(deadline);
-        const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays > 0 ? diffDays : 0;
-    };
-
-    const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
-
-    const renderGoalCard = ({ item }: { item: (typeof goals)[0] }) => {
-        const progress = item.target_amount > 0 ? Math.min(item.current_amount / item.target_amount, 1) : 0;
-        const percentage = Math.round(progress * 100);
-        const color = item.color ?? '#FF6B9D';
-        const emoji = item.emoji ?? '🎯';
-
-        return (
-            <Link href={`/savings/${item.id}`} asChild>
-                <TouchableOpacity style={styles.goalCard}>
-                    <View style={styles.goalHeader}>
-                        <View style={[styles.emojiContainer, { backgroundColor: color + '15' }]}>
-                            <Text style={styles.goalEmoji}>{emoji}</Text>
-                        </View>
-                        <View style={styles.goalInfo}>
-                            <Text style={styles.goalTitle}>{item.title}</Text>
-                            <Text style={styles.goalDeadline}>
-                                期限: {item.deadline ?? '未定'} (あと{getDaysRemaining(item.deadline)}日)
-                            </Text>
-                        </View>
-                        <FontAwesome name="chevron-right" size={14} color={theme.textMuted} />
-                    </View>
-                    <View style={styles.progressSection}>
-                        <View style={styles.progressLabelRow}>
-                            <Text style={styles.progressText}>
-                                <Text style={[styles.currentAmount, { color }]}>{formatCurrency(item.current_amount)}</Text>
-                                <Text style={styles.targetAmount}> / {formatCurrency(item.target_amount)}円</Text>
-                            </Text>
-                            <Text style={[styles.percentageText, { color }]}>{percentage}%</Text>
-                        </View>
-                        <View style={styles.progressBarBg}>
-                            <View style={[styles.progressBarFill, { backgroundColor: color, width: `${percentage}%` }]} />
-                        </View>
-                    </View>
-                    <View style={styles.footerRow}>
-                        <Text style={styles.remainingText}>あと {formatCurrency(item.target_amount - item.current_amount)}円</Text>
-                        <View style={styles.avatars}>
-                            <View style={[styles.avatar, { backgroundColor: theme.primary + '30' }]}>
-                                <Text style={styles.avatarText}>ME</Text>
-                            </View>
-                            <View style={[styles.avatar, { backgroundColor: theme.secondary, marginLeft: -8 }]}>
-                                <Text style={styles.avatarText}>P</Text>
-                            </View>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            </Link>
-        );
-    };
-
-    if (!coupleId && profile) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-                <Text style={{ color: theme.textSecondary }}>パートナーと連携すると貯金目標を管理できます</Text>
-            </View>
-        );
-    }
-    if (isLoading) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>💰 共同貯金</Text>
-                <View style={{ width: 40 }} />
-            </View>
-
-            <FlatList
-                data={goals}
-                renderItem={renderGoalCard}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                ListHeaderComponent={
-                    <View style={styles.summaryCard}>
-                        <Text style={styles.summaryLabel}>合計貯金額</Text>
-                        <Text style={styles.summaryAmount}>
-                            {formatCurrency(goals.reduce((sum, g) => sum + g.current_amount, 0))}
-                            <Text style={styles.summaryUnit}>円</Text>
-                        </Text>
-                        <View style={styles.summaryDivider} />
-                        <Text style={styles.summarySubtext}>二人の夢に向かって順調に進んでいます！✨</Text>
-                    </View>
-                }
-            />
-
-            <Link href="/savings/add-goal" asChild>
-                <TouchableOpacity style={StyleSheet.flatten([styles.fab, { backgroundColor: theme.primary }])}>
-                    <FontAwesome name="plus" size={24} color="#fff" />
-                </TouchableOpacity>
-            </Link>
-        </View>
-    );
-}
-
 const createStyles = (theme: ThemeColors, isDark: boolean) =>
     StyleSheet.create({
         container: {
@@ -316,3 +197,123 @@ const createStyles = (theme: ThemeColors, isDark: boolean) =>
             elevation: 6,
         },
     });
+
+export default function SavingsScreen() {
+    const { theme } = useTheme();
+    const styles = useThemedStyles(createStyles);
+    const { profile } = useAuthStore();
+    const coupleId = profile?.couple_id ?? null;
+    const { data: goals = [], isLoading } = useSavingsGoals(coupleId);
+
+    const getDaysRemaining = (deadline: string | null) => {
+        if (!deadline) return 0;
+        const today = new Date();
+        const target = new Date(deadline);
+        const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays > 0 ? diffDays : 0;
+    };
+
+    const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
+
+    const renderGoalCard = ({ item }: { item: (typeof goals)[0] }) => {
+        const progress = item.target_amount > 0 ? Math.min(item.current_amount / item.target_amount, 1) : 0;
+        const percentage = Math.round(progress * 100);
+        const color = item.color ?? '#FF6B9D';
+        const emoji = item.emoji ?? '🎯';
+
+        return (
+            <Link href={`/savings/${item.id}`} asChild>
+                <TouchableOpacity style={styles.goalCard}>
+                    <View style={styles.goalHeader}>
+                        <View style={[styles.emojiContainer, { backgroundColor: color + '15' }]}>
+                            <Text style={styles.goalEmoji}>{emoji}</Text>
+                        </View>
+                        <View style={styles.goalInfo}>
+                            <Text style={styles.goalTitle}>{item.title}</Text>
+                            <Text style={styles.goalDeadline}>
+                                期限: {item.deadline ?? '未定'} (あと{getDaysRemaining(item.deadline)}日)
+                            </Text>
+                        </View>
+                        <FontAwesome name="chevron-right" size={14} color={theme.textMuted} />
+                    </View>
+                    <View style={styles.progressSection}>
+                        <View style={styles.progressLabelRow}>
+                            <Text style={styles.progressText}>
+                                <Text style={[styles.currentAmount, { color }]}>{formatCurrency(item.current_amount)}</Text>
+                                <Text style={styles.targetAmount}> / {formatCurrency(item.target_amount)}円</Text>
+                            </Text>
+                            <Text style={[styles.percentageText, { color }]}>{percentage}%</Text>
+                        </View>
+                        <View style={styles.progressBarBg}>
+                            <View style={[styles.progressBarFill, { backgroundColor: color, width: `${percentage}%` }]} />
+                        </View>
+                    </View>
+                    <View style={styles.footerRow}>
+                        <Text style={styles.remainingText}>あと {formatCurrency(item.target_amount - item.current_amount)}円</Text>
+                        <View style={styles.avatars}>
+                            <View style={[styles.avatar, { backgroundColor: theme.primary + '30' }]}>
+                                <Text style={styles.avatarText}>ME</Text>
+                            </View>
+                            <View style={[styles.avatar, { backgroundColor: theme.secondary, marginLeft: -8 }]}>
+                                <Text style={styles.avatarText}>P</Text>
+                            </View>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            </Link>
+        );
+    };
+
+    if (!coupleId && profile) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+                <Text style={{ color: theme.textSecondary }}>パートナーと連携すると貯金目標を管理できます</Text>
+            </View>
+        );
+    }
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>💰 共同貯金</Text>
+                <View style={{ width: 40 }} />
+            </View>
+
+            <FlatList
+                data={goals}
+                renderItem={renderGoalCard}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={
+                    <View style={styles.summaryCard}>
+                        <Text style={styles.summaryLabel}>合計貯金額</Text>
+                        <Text style={styles.summaryAmount}>
+                            {formatCurrency(goals.reduce((sum, g) => sum + g.current_amount, 0))}
+                            <Text style={styles.summaryUnit}>円</Text>
+                        </Text>
+                        <View style={styles.summaryDivider} />
+                        <Text style={styles.summarySubtext}>二人の夢に向かって順調に進んでいます！✨</Text>
+                    </View>
+                }
+            />
+
+            <Link href="/savings/add-goal" asChild>
+                <TouchableOpacity style={StyleSheet.flatten([styles.fab, { backgroundColor: theme.primary }])}>
+                    <FontAwesome name="plus" size={24} color="#fff" />
+                </TouchableOpacity>
+            </Link>
+        </View>
+    );
+}
+

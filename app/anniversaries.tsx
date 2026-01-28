@@ -1,3 +1,5 @@
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeColors, useThemedStyles } from '@/hooks/useThemedStyles';
 import { useAnniversaries, useAnniversaryMutations } from '@/lib/queries';
 import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -18,6 +20,8 @@ import {
 const EMOJI_OPTIONS = ['💕', '❤️', '🏠', '🎂', '💍', '🎉', '✈️', '🌸', '⭐', '🎁'];
 
 export default function AnniversariesScreen() {
+    const { theme, isDark } = useTheme();
+    const styles = useThemedStyles(createStyles);
     const { profile } = useAuthStore();
     const coupleId = profile?.couple_id ?? null;
     const { data: anniversariesData = [] } = useAnniversaries(coupleId);
@@ -66,7 +70,7 @@ export default function AnniversariesScreen() {
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
-        return `${date.getMonth() + 1}月${date.getDate()}日`;
+        return `${date.getMonth() + 1}月${date.getDate()} 日`;
     };
 
     const sortedAnniversaries = [...anniversaries].sort((a, b) => {
@@ -107,11 +111,11 @@ export default function AnniversariesScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>💕 記念日</Text>
                 <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-                    <FontAwesome name="plus" size={18} color="#FF6B9D" />
+                    <FontAwesome name="plus" size={18} color={theme.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -269,10 +273,10 @@ export default function AnniversariesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
@@ -281,7 +285,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -289,23 +293,23 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     addButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         justifyContent: 'center',
         alignItems: 'center',
     },
     countdownCard: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         marginHorizontal: 16,
         borderRadius: 24,
         padding: 32,
         alignItems: 'center',
-        shadowColor: '#FF6B9D',
+        shadowColor: theme.primary,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
         shadowRadius: 16,
@@ -352,7 +356,7 @@ const styles = StyleSheet.create({
     yearBadgeText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#FF6B9D',
+        color: theme.primary,
     },
     listSection: {
         marginTop: 32,
@@ -361,13 +365,13 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     anniversaryCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 10,
@@ -376,12 +380,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.03,
         shadowRadius: 4,
         elevation: 1,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     anniversaryEmoji: {
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -395,11 +401,11 @@ const styles = StyleSheet.create({
     anniversaryTitle: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
     },
     anniversaryDate: {
         fontSize: 13,
-        color: '#999',
+        color: theme.textSecondary,
         marginTop: 2,
     },
     anniversaryRight: {
@@ -407,10 +413,10 @@ const styles = StyleSheet.create({
     },
     daysText: {
         fontSize: 14,
-        color: '#999',
+        color: theme.textMuted,
     },
     todayBadge: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 12,
@@ -421,7 +427,7 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     soonBadge: {
-        backgroundColor: '#FFE4EC',
+        backgroundColor: theme.primary + '25',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 12,
@@ -429,7 +435,7 @@ const styles = StyleSheet.create({
     soonBadgeText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#FF6B9D',
+        color: theme.primary,
     },
     tipsSection: {
         marginTop: 24,
@@ -438,7 +444,7 @@ const styles = StyleSheet.create({
     tipCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         borderRadius: 12,
         padding: 16,
         gap: 12,
@@ -449,7 +455,7 @@ const styles = StyleSheet.create({
     tipText: {
         flex: 1,
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
     },
     modalOverlay: {
         flex: 1,
@@ -457,7 +463,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
@@ -472,7 +478,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     modalForm: {
         gap: 20,
@@ -483,14 +489,14 @@ const styles = StyleSheet.create({
     formLabel: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
     },
     formInput: {
-        backgroundColor: '#f8f8f8',
+        backgroundColor: theme.backgroundSecondary,
         borderRadius: 12,
         padding: 14,
         fontSize: 16,
-        color: '#333',
+        color: theme.text,
     },
     emojiGrid: {
         flexDirection: 'row',
@@ -501,14 +507,14 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: theme.backgroundSecondary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     emojiOptionSelected: {
-        backgroundColor: '#FFE4EC',
+        backgroundColor: theme.primary + '25',
         borderWidth: 2,
-        borderColor: '#FF6B9D',
+        borderColor: theme.primary,
     },
     emojiOptionText: {
         fontSize: 22,
@@ -521,17 +527,17 @@ const styles = StyleSheet.create({
     },
     yearlyToggleText: {
         fontSize: 16,
-        color: '#333',
+        color: theme.text,
     },
     saveButton: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
         marginTop: 24,
     },
     saveButtonDisabled: {
-        backgroundColor: '#fcc',
+        opacity: 0.5,
     },
     saveButtonText: {
         fontSize: 16,

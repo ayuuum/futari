@@ -2,6 +2,7 @@ import { ColorMode, ThemeColors, ThemeName, getTheme } from '@/constants/themes'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
+export type { ThemeColors };
 
 const THEME_STORAGE_KEY = '@futari_theme';
 const COLOR_MODE_STORAGE_KEY = '@futari_color_mode';

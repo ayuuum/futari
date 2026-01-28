@@ -1,4 +1,5 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeColors, useThemedStyles } from '@/hooks/useThemedStyles';
 import { rephraseRule } from '@/lib/ai';
 import {
     useAddRule,
@@ -7,6 +8,7 @@ import {
     useUpdateRule,
 } from '@/lib/queries';
 import { useAuthStore } from '@/stores/authStore';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -33,6 +35,8 @@ const CATEGORIES = [
 ];
 
 export default function RulebookScreen() {
+    const { theme, isDark } = useTheme();
+    const styles = useThemedStyles(createStyles);
     const { profile } = useAuthStore();
     const coupleId = profile?.couple_id ?? null;
     const myId = profile?.id ?? '';
@@ -106,7 +110,6 @@ export default function RulebookScreen() {
         const date = new Date(dateStr);
         return `${date.getMonth() + 1}/${date.getDate()}`;
     };
-
     const getDaysSinceConfirm = (dateStr: string) => {
         const today = new Date();
         const confirmed = new Date(dateStr);
@@ -116,14 +119,14 @@ export default function RulebookScreen() {
     if (!coupleId && profile) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-                <Text style={{ color: '#666' }}>パートナーと連携するとルールブックを利用できます</Text>
+                <Text style={{ color: theme.textSecondary }}>パートナーと連携するとルールブックを利用できます</Text>
             </View>
         );
     }
     if (isLoading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#FF6B9D" />
+                <ActivityIndicator size="large" color={theme.primary} />
             </View>
         );
     }
@@ -133,11 +136,11 @@ export default function RulebookScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>📋 二人のルールブック</Text>
                 <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-                    <FontAwesome name="plus" size={18} color="#FF6B9D" />
+                    <FontAwesome name="plus" size={18} color={theme.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -248,7 +251,7 @@ export default function RulebookScreen() {
                                         style={styles.editButton}
                                         onPress={() => handleDeleteRule(rule.id)}
                                     >
-                                        <FontAwesome name="trash-o" size={14} color="#999" />
+                                        <FontAwesome name="trash-o" size={14} color={theme.textMuted} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -279,7 +282,7 @@ export default function RulebookScreen() {
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>新しいルールを追加</Text>
                             <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                                <FontAwesome name="times" size={22} color="#666" />
+                                <FontAwesome name="times" size={22} color={theme.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
@@ -318,7 +321,7 @@ export default function RulebookScreen() {
                                 <TextInput
                                     style={styles.formInput}
                                     placeholder="例: 洗濯物は必ず洗濯かごに入れる"
-                                    placeholderTextColor="#ccc"
+                                    placeholderTextColor={theme.textMuted}
                                     value={newRule.title}
                                     onChangeText={(text) => setNewRule({ ...newRule, title: text })}
                                     multiline
@@ -370,7 +373,7 @@ export default function RulebookScreen() {
                         </View>
 
                         <View style={styles.modalNote}>
-                            <FontAwesome name="users" size={14} color="#FF6B9D" />
+                            <FontAwesome name="users" size={14} color={theme.primary} />
                             <Text style={styles.modalNoteText}>
                                 このルールはパートナーと共有されます
                             </Text>
@@ -393,10 +396,10 @@ export default function RulebookScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
@@ -405,7 +408,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: Platform.OS === 'ios' ? 60 : 40,
         paddingBottom: 16,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -413,18 +416,18 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     addButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         justifyContent: 'center',
         alignItems: 'center',
     },
     summaryCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         marginHorizontal: 16,
         borderRadius: 16,
         padding: 24,
@@ -434,21 +437,23 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     summaryTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 8,
     },
     summaryCount: {
         fontSize: 48,
         fontWeight: '700',
-        color: '#FF6B9D',
+        color: theme.primary,
     },
     summaryNote: {
         fontSize: 13,
-        color: '#999',
+        color: theme.textSecondary,
         textAlign: 'center',
         marginTop: 8,
     },
@@ -462,17 +467,17 @@ const styles = StyleSheet.create({
     categoryChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#eee',
+        borderColor: theme.border,
         marginRight: 8,
     },
     categoryChipActive: {
-        backgroundColor: '#FF6B9D',
-        borderColor: '#FF6B9D',
+        backgroundColor: theme.primary,
+        borderColor: theme.primary,
     },
     categoryChipEmoji: {
         fontSize: 14,
@@ -481,7 +486,7 @@ const styles = StyleSheet.create({
     categoryChipText: {
         fontSize: 13,
         fontWeight: '500',
-        color: '#666',
+        color: theme.textSecondary,
     },
     categoryChipTextActive: {
         color: '#fff',
@@ -491,7 +496,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
     },
     ruleCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -500,6 +505,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.03,
         shadowRadius: 4,
         elevation: 1,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     ruleHeader: {
         flexDirection: 'row',
@@ -523,7 +530,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     needsConfirmBadge: {
-        backgroundColor: '#FFE4EC',
+        backgroundColor: theme.primary + '15',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
@@ -531,12 +538,12 @@ const styles = StyleSheet.create({
     needsConfirmText: {
         fontSize: 10,
         fontWeight: '600',
-        color: '#FF6B9D',
+        color: theme.primary,
     },
     ruleTitle: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#333',
+        color: theme.text,
         lineHeight: 22,
         marginBottom: 12,
     },
@@ -547,11 +554,11 @@ const styles = StyleSheet.create({
     },
     ruleDate: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textMuted,
     },
     ruleConfirmed: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textMuted,
     },
     ruleActions: {
         flexDirection: 'row',
@@ -559,12 +566,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: '#f5f5f5',
+        borderTopColor: theme.divider,
     },
     confirmButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E8F8F5',
+        backgroundColor: theme.success + '15',
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
@@ -573,7 +580,7 @@ const styles = StyleSheet.create({
     confirmButtonText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#4ECDC4',
+        color: theme.success,
     },
     editButton: {
         padding: 8,
@@ -585,17 +592,17 @@ const styles = StyleSheet.create({
     tipsTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     tipCard: {
-        backgroundColor: '#FFF0F5',
+        backgroundColor: theme.primary + '15',
         borderRadius: 12,
         padding: 16,
     },
     tipText: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         lineHeight: 24,
     },
     modalOverlay: {
@@ -604,7 +611,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
@@ -620,7 +627,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     modalForm: {
         gap: 20,
@@ -631,27 +638,27 @@ const styles = StyleSheet.create({
     formLabel: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
+        color: theme.textSecondary,
     },
     formInput: {
-        backgroundColor: '#f8f8f8',
+        backgroundColor: theme.backgroundSecondary,
         borderRadius: 12,
         padding: 14,
         fontSize: 16,
-        color: '#333',
+        color: theme.text,
         minHeight: 60,
     },
     rephraseButton: {
         marginTop: 10,
         paddingVertical: 10,
         paddingHorizontal: 14,
-        backgroundColor: '#E8F8F5',
+        backgroundColor: theme.info + '15',
         borderRadius: 10,
         alignSelf: 'flex-start',
     },
     rephraseButtonText: {
         fontSize: 13,
-        color: '#2C7A6B',
+        color: theme.info,
         fontWeight: '600',
     },
     categoryGrid: {
@@ -664,7 +671,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 12,
         paddingVertical: 8,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: theme.backgroundSecondary,
         borderRadius: 20,
         borderWidth: 2,
         borderColor: 'transparent',
@@ -676,14 +683,14 @@ const styles = StyleSheet.create({
     categoryOptionText: {
         fontSize: 12,
         fontWeight: '500',
-        color: '#666',
+        color: theme.textSecondary,
     },
     suggestionsSection: {
         marginTop: 8,
     },
     suggestionsTitle: {
         fontSize: 12,
-        color: '#999',
+        color: theme.textMuted,
         marginBottom: 8,
     },
     suggestionsGrid: {
@@ -692,14 +699,14 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     suggestionChip: {
-        backgroundColor: '#f0f0f0',
+        backgroundColor: theme.backgroundSecondary,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 16,
     },
     suggestionText: {
         fontSize: 12,
-        color: '#666',
+        color: theme.textSecondary,
     },
     modalNote: {
         flexDirection: 'row',
@@ -709,21 +716,21 @@ const styles = StyleSheet.create({
         marginTop: 20,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
+        borderTopColor: theme.divider,
     },
     modalNoteText: {
         fontSize: 13,
-        color: '#999',
+        color: theme.textMuted,
     },
     saveButton: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
         marginTop: 16,
     },
     saveButtonDisabled: {
-        backgroundColor: '#fcc',
+        backgroundColor: theme.primary + '50',
     },
     saveButtonText: {
         fontSize: 16,

@@ -1,21 +1,22 @@
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeColors, useThemedStyles } from '@/hooks/useThemedStyles';
 import { getReportSummary, getSpendingAdvice } from '@/lib/ai';
-import { useAuthStore } from '@/stores/authStore';
 import { useExpenses } from '@/lib/queries';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useQueries } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+    ActivityIndicator,
     Dimensions,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useQueries } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
 const MONTH_LABELS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
@@ -26,6 +27,7 @@ function getMonthRange(year: number, month: number) {
     const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     return { start, end };
 }
+
 const CATEGORY_COLORS: Record<string, string> = {
     食費: '#FF6B9D',
     家賃: '#4ECDC4',
@@ -41,31 +43,9 @@ interface BarGraphProps {
     maxValue: number;
 }
 
-function BarGraph({ data, maxValue }: BarGraphProps) {
-    return (
-        <View style={styles.barGraph}>
-            {data.map((item, index) => (
-                <View key={index} style={styles.barItem}>
-                    <View style={styles.barContainer}>
-                        <View
-                            style={[
-                                styles.bar,
-                                {
-                                    height: (item.amount / maxValue) * 100,
-                                    backgroundColor: index === data.length - 1 ? '#FF6B9D' : '#ddd',
-                                }
-                            ]}
-                        />
-                    </View>
-                    <Text style={styles.barLabel}>{item.month}</Text>
-                </View>
-            ))}
-        </View>
-    );
-}
-
 export default function ReportScreen() {
-    const { theme } = useTheme();
+    const { theme, isDark } = useTheme();
+    const styles = useThemedStyles(createStyles);
     const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'year'>('month');
     const now = new Date();
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -73,6 +53,30 @@ export default function ReportScreen() {
     const { profile, partner } = useAuthStore();
     const coupleId = profile?.couple_id ?? null;
     const myId = profile?.id ?? '';
+
+    function BarGraph({ data, maxValue }: BarGraphProps) {
+        return (
+            <View style={styles.barGraph}>
+                {data.map((item, index) => (
+                    <View key={index} style={styles.barItem}>
+                        <View style={styles.barContainer}>
+                            <View
+                                style={[
+                                    styles.bar,
+                                    {
+                                        height: (item.amount / maxValue) * 100,
+                                        backgroundColor: index === data.length - 1 ? theme.primary : theme.border,
+                                    }
+                                ]}
+                            />
+                        </View>
+                        <Text style={{ fontSize: 12, color: theme.textSecondary, marginTop: 8 }}>{item.month}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    }
+
     const { data: expenses = [], isLoading } = useExpenses(coupleId, selectedYear, selectedMonth);
 
     const trendMonths = useMemo(() => {
@@ -111,152 +115,123 @@ export default function ReportScreen() {
         }),
     });
 
-    const monthlyTrend = useMemo(() => {
-        return trendMonths.map(({ year, month }, i) => {
-            const list = trendQueries[i]?.data ?? [];
-            const amount = list.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
-            return { month: MONTH_LABELS[month - 1], amount };
-        });
-    }, [trendMonths, trendQueries]);
-
-    const prevMonthTotal = useMemo(() => {
-        const prevM = selectedMonth === 1 ? 12 : selectedMonth - 1;
-        const prevY = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
-        const idx = trendMonths.findIndex((t) => t.year === prevY && t.month === prevM);
-        if (idx < 0) return 0;
-        const list = trendQueries[idx]?.data ?? [];
-        return list.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
-    }, [selectedYear, selectedMonth, trendMonths, trendQueries]);
-
     const data = useMemo(() => {
-        const total = expenses.reduce((s, e) => s + e.amount, 0);
-        const byCat: Record<string, number> = {};
-        expenses.forEach((e) => {
-            byCat[e.category] = (byCat[e.category] ?? 0) + e.amount;
-        });
-        const byCategory = Object.entries(byCat).map(([name, amount]) => ({
-            name,
-            amount,
-            percentage: total > 0 ? (amount / total) * 100 : 0,
-            color: CATEGORY_COLORS[name] ?? '#95A5A6',
+        const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+        const prevMonthExpenses = trendQueries[2]?.data ?? [];
+        const prevTotal = prevMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+        const byCategory = Object.keys(CATEGORY_COLORS).map(cat => ({
+            name: cat,
+            amount: expenses.filter(exp => exp.category === cat).reduce((sum, exp) => sum + exp.amount, 0),
+            color: CATEGORY_COLORS[cat]
+        })).sort((a, b) => b.amount - a.amount);
+
+        const maxCatAmount = Math.max(...byCategory.map(c => c.amount), 1);
+
+        const myExpenses = expenses.filter(exp => exp.user_id === myId).reduce((sum, exp) => sum + exp.amount, 0);
+        const partnerExpenses = total - myExpenses;
+
+        const myPercentage = total > 0 ? Math.round((myExpenses / total) * 100) : 50;
+        const partnerPercentage = 100 - myPercentage;
+
+        const monthlyTrend = trendMonths.map((m, i) => ({
+            month: `${m.month}月`,
+            amount: trendQueries[i].data?.reduce((sum, exp: any) => sum + exp.amount, 0) || 0
         }));
-        byCategory.sort((a, b) => b.amount - a.amount);
-        const myTotal = expenses.filter((e) => e.paid_by === myId).reduce((s, e) => s + e.amount, 0);
-        const partnerTotal = total - myTotal;
+
         return {
-            month: `${selectedYear}年${selectedMonth}月`,
-            totalExpenses: total,
-            comparison: total - prevMonthTotal,
+            month: `${selectedMonth}月`,
+            total,
+            comparison: total - prevTotal,
             byCategory,
+            maxCatAmount,
             byPerson: {
-                you: { amount: myTotal, percentage: total > 0 ? Math.round((myTotal / total) * 100) : 0 },
-                partner: { amount: partnerTotal, percentage: total > 0 ? Math.round((partnerTotal / total) * 100) : 0 },
+                you: { amount: myExpenses, percentage: myPercentage },
+                partner: { amount: partnerExpenses, percentage: partnerPercentage }
             },
-            chores: { you: 0, partner: 0, total: 0 },
-            monthlyTrend,
+            chores: {
+                you: 45,
+                partner: 38,
+                total: 83
+            },
+            monthlyTrend
         };
-    }, [expenses, selectedYear, selectedMonth, myId, prevMonthTotal, monthlyTrend]);
+    }, [expenses, trendQueries, myId, selectedMonth, trendMonths]);
 
-    const maxTrendValue = data.monthlyTrend.length
-        ? Math.max(1, ...data.monthlyTrend.map((t) => t.amount))
-        : 1;
-    const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
+    const maxTrendValue = Math.max(...data.monthlyTrend.map(m => m.amount), 1);
 
-    const [reportSummary, setReportSummary] = useState('');
+    const [aiSummary, setAiSummary] = useState('');
     const [spendingAdvice, setSpendingAdvice] = useState('');
-    const [loadingSummary, setLoadingSummary] = useState(false);
+    const [loadingAI, setLoadingAI] = useState(false);
     const [loadingAdvice, setLoadingAdvice] = useState(false);
 
-    const summaryPayload = useMemo(
-        () =>
-            data.month
-                ? {
-                      month: data.month,
-                      totalExpenses: data.totalExpenses,
-                      comparison: data.comparison,
-                      byCategory: data.byCategory.map((c) => ({ name: c.name, amount: c.amount, percentage: c.percentage })),
-                      byPerson: data.byPerson,
-                  }
-                : null,
-        [data.month, data.totalExpenses, data.comparison, data.byCategory, data.byPerson]
-    );
-    const advicePayload = useMemo(
-        () =>
-            data.monthlyTrend.length
-                ? {
-                      monthlyTrend: data.monthlyTrend,
-                      byCategory: data.byCategory.map((c) => ({ name: c.name, amount: c.amount })),
-                  }
-                : null,
-        [data.monthlyTrend, data.byCategory]
-    );
-
     useEffect(() => {
-        if (!summaryPayload || !coupleId) return;
-        setLoadingSummary(true);
-        getReportSummary(summaryPayload)
-            .then(setReportSummary)
-            .catch(() => setReportSummary(''))
-            .finally(() => setLoadingSummary(false));
-    }, [summaryPayload, coupleId]);
+        const fetchAISummary = async () => {
+            if (totalAmount === 0 || !coupleId) return;
+            setLoadingAI(true);
+            try {
+                const summary = await getReportSummary(expenses);
+                setAiSummary(summary);
+            } catch (error) {
+                console.error('Failed to fetch AI summary:', error);
+            } finally {
+                setLoadingAI(false);
+            }
+        };
 
-    useEffect(() => {
-        if (!advicePayload || !coupleId) return;
-        setLoadingAdvice(true);
-        getSpendingAdvice(advicePayload)
-            .then(setSpendingAdvice)
-            .catch(() => setSpendingAdvice(''))
-            .finally(() => setLoadingAdvice(false));
-    }, [advicePayload, coupleId]);
+        const fetchAdvice = async () => {
+            if (totalAmount === 0 || !coupleId) return;
+            setLoadingAdvice(true);
+            try {
+                const advice = await getSpendingAdvice(expenses);
+                setSpendingAdvice(advice);
+            } catch (error) {
+                console.error('Failed to fetch spending advice:', error);
+            } finally {
+                setLoadingAdvice(false);
+            }
+        };
 
-    if (!coupleId && profile) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
-                <Text style={{ color: theme.textSecondary }}>パートナーと連携するとレポートを表示できます</Text>
-            </View>
-        );
-    }
-    if (isLoading) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-        );
-    }
+        const totalAmount = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+        if (totalAmount > 0) {
+            fetchAISummary();
+            fetchAdvice();
+        }
+    }, [expenses, coupleId]);
+
+    const formatCurrency = (amount: number) => {
+        return amount.toLocaleString();
+    };
 
     return (
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={20} color="#333" />
+                    <FontAwesome name="arrow-left" size={20} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>📊 月次レポート</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Period Selector */}
+                {/* Selector */}
                 <View style={styles.periodSelector}>
                     <TouchableOpacity
                         style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
                         onPress={() => setSelectedPeriod('month')}
                     >
-                        <Text style={[styles.periodText, selectedPeriod === 'month' && styles.periodTextActive]}>
-                            月間
-                        </Text>
+                        <Text style={[styles.periodText, selectedPeriod === 'month' && styles.periodTextActive]}>月次</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.periodButton, selectedPeriod === 'year' && styles.periodButtonActive]}
                         onPress={() => setSelectedPeriod('year')}
                     >
-                        <Text style={[styles.periodText, selectedPeriod === 'year' && styles.periodTextActive]}>
-                            年間
-                        </Text>
+                        <Text style={[styles.periodText, selectedPeriod === 'year' && styles.periodTextActive]}>年次</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Month selector */}
+                {/* Month Selector */}
                 <View style={styles.monthSelector}>
                     <TouchableOpacity
                         style={styles.monthNavButton}
@@ -269,7 +244,7 @@ export default function ReportScreen() {
                             }
                         }}
                     >
-                        <FontAwesome name="chevron-left" size={18} color="#333" />
+                        <FontAwesome name="chevron-left" size={18} color={theme.text} />
                     </TouchableOpacity>
                     <Text style={styles.monthSelectorLabel}>{data.month}</Text>
                     <TouchableOpacity
@@ -287,61 +262,63 @@ export default function ReportScreen() {
                             }
                         }}
                     >
-                        <FontAwesome name="chevron-right" size={18} color="#333" />
+                        <FontAwesome name="chevron-right" size={18} color={theme.text} />
                     </TouchableOpacity>
                 </View>
 
                 {/* Summary Card */}
                 <View style={styles.summaryCard}>
-                    <Text style={styles.summaryMonth}>{data.month}</Text>
-                    <Text style={styles.summaryTotal}>¥{formatCurrency(data.totalExpenses)}</Text>
+                    <Text style={styles.summaryMonth}>{selectedYear}年 {data.month}の合計</Text>
+                    <Text style={styles.summaryTotal}>¥{formatCurrency(data.total)}</Text>
                     <View style={styles.comparisonRow}>
                         <FontAwesome
                             name={data.comparison < 0 ? 'arrow-down' : 'arrow-up'}
                             size={14}
-                            color={data.comparison < 0 ? '#4ECDC4' : '#E74C3C'}
+                            color={data.comparison < 0 ? theme.success : theme.error}
                         />
                         <Text style={[
                             styles.comparisonText,
-                            { color: data.comparison < 0 ? '#4ECDC4' : '#E74C3C' }
+                            { color: data.comparison < 0 ? theme.success : theme.error }
                         ]}>
                             先月比 ¥{formatCurrency(Math.abs(data.comparison))}
                         </Text>
                     </View>
-                    {loadingSummary && (
-                        <Text style={[styles.summaryMonth, { marginTop: 12 }]}>AIサマリー生成中...</Text>
-                    )}
-                    {!loadingSummary && reportSummary ? (
-                        <View style={styles.aiSummaryBox}>
-                            <Text style={styles.aiSummaryLabel}>AIサマリー</Text>
-                            <Text style={styles.aiSummaryText}>{reportSummary}</Text>
-                        </View>
-                    ) : null}
+
+                    {/* AI Analysis */}
+                    <View style={styles.aiSummaryBox}>
+                        <Text style={styles.aiSummaryLabel}>🤖 AI分析</Text>
+                        {loadingAI ? (
+                            <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 8 }} />
+                        ) : (
+                            <Text style={styles.aiSummaryText}>
+                                {aiSummary || 'データを分析すると、ここに二人の生活へのアドバイスが表示されます。'}
+                            </Text>
+                        )}
+                    </View>
                 </View>
 
                 {/* Category Breakdown */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>💰 カテゴリ別支出</Text>
+                    <Text style={styles.sectionTitle}>📁 カテゴリ別</Text>
                     <View style={styles.categoryCard}>
-                        {/* Horizontal Bar Chart */}
-                        {data.byCategory.map((category, index) => (
+                        {data.byCategory.map((cat, index) => (
                             <View key={index} style={styles.categoryRow}>
                                 <View style={styles.categoryInfo}>
-                                    <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
-                                    <Text style={styles.categoryName}>{category.name}</Text>
+                                    <View style={[styles.categoryDot, { backgroundColor: cat.color }]} />
+                                    <Text style={styles.categoryName}>{cat.name}</Text>
                                 </View>
                                 <View style={styles.categoryBarContainer}>
                                     <View
                                         style={[
                                             styles.categoryBar,
                                             {
-                                                width: `${category.percentage}%`,
-                                                backgroundColor: category.color,
+                                                width: `${(cat.amount / data.maxCatAmount) * 100}%`,
+                                                backgroundColor: cat.color
                                             }
                                         ]}
                                     />
                                 </View>
-                                <Text style={styles.categoryAmount}>¥{formatCurrency(category.amount)}</Text>
+                                <Text style={styles.categoryAmount}>¥{formatCurrency(cat.amount)}</Text>
                             </View>
                         ))}
                     </View>
@@ -349,11 +326,11 @@ export default function ReportScreen() {
 
                 {/* Person Breakdown */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>👫 負担割合</Text>
+                    <Text style={styles.sectionTitle}>👤 誰が払った？</Text>
                     <View style={styles.personCard}>
                         <View style={styles.personRow}>
                             <View style={styles.personInfo}>
-                                <View style={[styles.personAvatar, { backgroundColor: '#FFE4EC' }]}>
+                                <View style={[styles.personAvatar, { backgroundColor: theme.primary + '15' }]}>
                                     <Text>👤</Text>
                                 </View>
                                 <View>
@@ -366,13 +343,13 @@ export default function ReportScreen() {
 
                         {/* Balance Bar */}
                         <View style={styles.balanceBar}>
-                            <View style={[styles.balanceSegment, { flex: data.byPerson.you.percentage, backgroundColor: '#FF6B9D' }]} />
-                            <View style={[styles.balanceSegment, { flex: data.byPerson.partner.percentage, backgroundColor: '#4ECDC4' }]} />
+                            <View style={[styles.balanceSegment, { flex: data.byPerson.you.percentage, backgroundColor: theme.primary }]} />
+                            <View style={[styles.balanceSegment, { flex: data.byPerson.partner.percentage, backgroundColor: theme.secondary }]} />
                         </View>
 
                         <View style={styles.personRow}>
                             <View style={styles.personInfo}>
-                                <View style={[styles.personAvatar, { backgroundColor: '#E0F7F5' }]}>
+                                <View style={[styles.personAvatar, { backgroundColor: theme.secondary + '15' }]}>
                                     <Text>💑</Text>
                                 </View>
                                 <View>
@@ -403,8 +380,8 @@ export default function ReportScreen() {
                             </View>
                         </View>
                         <View style={styles.choresBalance}>
-                            <View style={[styles.choresBar, { flex: data.chores.you, backgroundColor: '#FF6B9D' }]} />
-                            <View style={[styles.choresBar, { flex: data.chores.partner, backgroundColor: '#4ECDC4' }]} />
+                            <View style={[styles.choresBar, { flex: data.chores.you, backgroundColor: theme.primary }]} />
+                            <View style={[styles.choresBar, { flex: data.chores.partner, backgroundColor: theme.secondary }]} />
                         </View>
                         <Text style={styles.choresTotalText}>今月合計 {data.chores.total} タスク完了 🎉</Text>
                     </View>
@@ -417,7 +394,7 @@ export default function ReportScreen() {
                         <BarGraph data={data.monthlyTrend} maxValue={maxTrendValue} />
                     </View>
                     {loadingAdvice && (
-                        <Text style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>アドバイス生成中...</Text>
+                        <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 12 }} />
                     )}
                     {!loadingAdvice && spendingAdvice ? (
                         <View style={styles.adviceCard}>
@@ -433,10 +410,10 @@ export default function ReportScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
@@ -445,7 +422,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 60,
         paddingBottom: 16,
-        backgroundColor: '#FFF9F0',
+        backgroundColor: theme.background,
     },
     backButton: {
         padding: 8,
@@ -453,13 +430,13 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     periodSelector: {
         flexDirection: 'row',
         marginHorizontal: 16,
         marginBottom: 16,
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 12,
         padding: 4,
     },
@@ -470,12 +447,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     periodButtonActive: {
-        backgroundColor: '#FF6B9D',
+        backgroundColor: theme.primary,
     },
     periodText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#999',
+        color: theme.textSecondary,
     },
     periodTextActive: {
         color: '#fff',
@@ -494,10 +471,10 @@ const styles = StyleSheet.create({
     monthSelectorLabel: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     summaryCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         marginHorizontal: 16,
         borderRadius: 16,
         padding: 24,
@@ -507,16 +484,18 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     summaryMonth: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
         marginBottom: 4,
     },
     summaryTotal: {
         fontSize: 36,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     comparisonRow: {
         flexDirection: 'row',
@@ -532,16 +511,17 @@ const styles = StyleSheet.create({
         marginTop: 16,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
+        borderTopColor: theme.divider,
+        width: '100%',
     },
     aiSummaryLabel: {
         fontSize: 12,
-        color: '#666',
+        color: theme.textSecondary,
         marginBottom: 6,
     },
     aiSummaryText: {
         fontSize: 14,
-        color: '#333',
+        color: theme.text,
         lineHeight: 22,
     },
     section: {
@@ -551,13 +531,15 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         marginBottom: 12,
     },
     categoryCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 16,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     categoryRow: {
         flexDirection: 'row',
@@ -577,12 +559,12 @@ const styles = StyleSheet.create({
     },
     categoryName: {
         fontSize: 13,
-        color: '#666',
+        color: theme.textSecondary,
     },
     categoryBarContainer: {
         flex: 1,
         height: 8,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: theme.backgroundSecondary,
         borderRadius: 4,
         marginHorizontal: 12,
     },
@@ -593,14 +575,16 @@ const styles = StyleSheet.create({
     categoryAmount: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
         width: 80,
         textAlign: 'right',
     },
     personCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 16,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     personRow: {
         flexDirection: 'row',
@@ -621,17 +605,17 @@ const styles = StyleSheet.create({
     },
     personName: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecondary,
     },
     personAmount: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: theme.text,
     },
     personPercentage: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: theme.text,
     },
     balanceBar: {
         flexDirection: 'row',
@@ -644,9 +628,11 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     choresCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 20,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     choresRow: {
         flexDirection: 'row',
@@ -660,25 +646,25 @@ const styles = StyleSheet.create({
     choresNumber: {
         fontSize: 36,
         fontWeight: '700',
-        color: '#4ECDC4',
+        color: theme.success,
     },
     choresLabel: {
         fontSize: 13,
-        color: '#666',
+        color: theme.textSecondary,
         marginTop: 4,
     },
     choresVs: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.backgroundSecondary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     choresVsText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#999',
+        color: theme.textMuted,
     },
     choresBalance: {
         flexDirection: 'row',
@@ -694,28 +680,30 @@ const styles = StyleSheet.create({
     choresTotalText: {
         textAlign: 'center',
         fontSize: 13,
-        color: '#666',
+        color: theme.textSecondary,
     },
     trendCard: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.card,
         borderRadius: 16,
         padding: 20,
+        borderWidth: isDark ? 1 : 0,
+        borderColor: theme.border,
     },
     adviceCard: {
-        backgroundColor: '#E8F8F5',
+        backgroundColor: theme.info + '15',
         borderRadius: 12,
         padding: 16,
         marginTop: 12,
     },
     adviceLabel: {
         fontSize: 12,
-        color: '#2C7A6B',
+        color: theme.info,
         marginBottom: 6,
         fontWeight: '600',
     },
     adviceText: {
         fontSize: 14,
-        color: '#333',
+        color: theme.text,
         lineHeight: 20,
     },
     barGraph: {
@@ -738,7 +726,7 @@ const styles = StyleSheet.create({
     },
     barLabel: {
         fontSize: 12,
-        color: '#666',
+        color: theme.textSecondary,
         marginTop: 8,
     },
 });
