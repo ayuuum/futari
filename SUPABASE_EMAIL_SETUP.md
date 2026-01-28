@@ -130,10 +130,51 @@ Supabaseのメールテンプレートでは以下の変数が使用できます
 - 既存のユーザーにも新しいテンプレートが適用されます
 - 条件分岐（`{{if eq .Data.language "ja" }}`）により、日本語と英語の両方に対応可能
 
-## 4. コード側の設定
+## 4. リダイレクトURLの設定（重要）
 
-コード側では既に `language: 'ja'` が設定されています：
+メール認証リンクがlocalhostになっている問題を防ぐため、以下の設定が必要です：
+
+### 4.1 Supabaseダッシュボードでの設定
+
+1. [Supabaseダッシュボード](https://app.supabase.com)にログイン
+2. プロジェクトを選択
+3. **Authentication** → **URL Configuration** を開く
+4. **Redirect URLs** に以下を追加：
+   - Web: `https://your-app.vercel.app/(auth)/login`（デプロイ先のURL）
+   - モバイル: `futari:///(auth)/login`（ディープリンク）
+   - 開発環境: `http://localhost:8081/(auth)/login`（ローカル開発時のみ）
+
+**注意**: ワイルドカードは使用できません。各URLを個別に追加してください。
+
+### 4.2 環境変数の設定
+
+`.env`ファイルに以下を追加（任意）：
+
+```bash
+# メール認証後のリダイレクトURL
+# Web: https://your-app.vercel.app/(auth)/login
+# Mobile: futari:///(auth)/login
+# 空欄の場合は自動検出（Webのみ）
+EXPO_PUBLIC_EMAIL_REDIRECT_URL=
+```
+
+**Webの場合**: 環境変数を設定しない場合、現在のURLから自動的に検出されます。
+
+**モバイルの場合**: 環境変数で `futari:///(auth)/login` を指定するか、デフォルトのディープリンクが使用されます。
+
+### 4.3 トラブルシューティング
+
+**メールリンクがlocalhostになっている場合**:
+1. Supabaseダッシュボードの **Redirect URLs** に正しいURLが追加されているか確認
+2. 環境変数 `EXPO_PUBLIC_EMAIL_REDIRECT_URL` が正しく設定されているか確認
+3. コード側で `emailRedirectTo` オプションが設定されているか確認（既に実装済み）
+
+## 5. コード側の設定
+
+コード側では既に以下の設定が完了しています：
+- `language: 'ja'` - 日本語テンプレートを使用
+- `emailRedirectTo` - メール確認後のリダイレクトURLを指定
 - `app/(auth)/signup.tsx` - 新規登録時
 - `app/(auth)/join.tsx` - 招待コードで参加時
 
-これにより、Supabaseダッシュボードで設定した日本語テンプレートが使用されます。
+これにより、Supabaseダッシュボードで設定した日本語テンプレートが使用され、正しいリダイレクトURLが設定されます。

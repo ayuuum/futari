@@ -1,17 +1,18 @@
+import { signInWithGoogle, supabase } from '@/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
-    Alert,
-    ActivityIndicator,
+    View,
 } from 'react-native';
-import { Link, router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -36,6 +37,19 @@ export default function LoginScreen() {
             router.replace('/(tabs)');
         }
         setLoading(false);
+    };
+
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        try {
+            const { error } = await signInWithGoogle();
+            if (error) throw error;
+            router.replace('/(tabs)');
+        } catch (error: any) {
+            Alert.alert('Googleログインエラー', error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -76,6 +90,21 @@ export default function LoginScreen() {
                         ) : (
                             <Text style={styles.buttonText}>ログイン</Text>
                         )}
+                    </TouchableOpacity>
+
+                    <View style={styles.divider}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>または</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.googleButton}
+                        onPress={handleGoogleLogin}
+                        disabled={loading}
+                    >
+                        <Ionicons name="logo-google" size={20} color="#EA4335" />
+                        <Text style={styles.googleButtonText}>Googleでログイン</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -138,6 +167,37 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: '600',
+    },
+    googleButton: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        gap: 12,
+    },
+    googleButtonText: {
+        color: '#333',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 16,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#E0E0E0',
+    },
+    dividerText: {
+        marginHorizontal: 16,
+        color: '#999',
+        fontSize: 14,
     },
     footer: {
         flexDirection: 'row',

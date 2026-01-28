@@ -59,6 +59,26 @@ export default function JoinScreen() {
         }
 
         // 3. Sign up with Supabase Auth (trigger creates users row)
+        const getRedirectUrl = () => {
+            // 環境変数で指定されている場合はそれを使用
+            if (process.env.EXPO_PUBLIC_EMAIL_REDIRECT_URL) {
+                return process.env.EXPO_PUBLIC_EMAIL_REDIRECT_URL;
+            }
+            
+            if (Platform.OS === 'web') {
+                // Webの場合: 現在のURLから取得
+                if (typeof window !== 'undefined') {
+                    const origin = window.location.origin;
+                    return `${origin}/(auth)/login`;
+                }
+                // SSR時は環境変数から取得
+                return process.env.EXPO_PUBLIC_REDIRECT_URL || 'https://your-app.vercel.app/(auth)/login';
+            }
+            // モバイルの場合: ディープリンク
+            return 'futari:///(auth)/login';
+        };
+        
+        const redirectUrl = getRedirectUrl();
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -66,7 +86,8 @@ export default function JoinScreen() {
                 data: { 
                     display_name: name,
                     language: 'ja' // メールテンプレートの言語設定
-                } 
+                },
+                emailRedirectTo: redirectUrl, // メール確認後のリダイレクトURL
             },
         });
 
