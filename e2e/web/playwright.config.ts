@@ -19,20 +19,20 @@ config({ path: resolve(__dirname, '../../.env') });
 const fs = require('fs');
 const logPath = resolve(__dirname, '../../.cursor/debug.log');
 try {
-  const logEntry = JSON.stringify({location:'playwright.config.ts:15',message:'Environment variables loaded',data:{hasBaseUrl:!!process.env.BASE_URL,baseUrlValue:process.env.BASE_URL,hasVercelUrl:!!process.env.VERCEL_URL,vercelUrlValue:process.env.VERCEL_URL,hasSupabaseUrl:!!process.env.EXPO_PUBLIC_SUPABASE_URL},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'D'}) + '\n';
+  const logEntry = JSON.stringify({ location: 'playwright.config.ts:15', message: 'Environment variables loaded', data: { hasBaseUrl: !!process.env.BASE_URL, baseUrlValue: process.env.BASE_URL, hasVercelUrl: !!process.env.VERCEL_URL, vercelUrlValue: process.env.VERCEL_URL, hasSupabaseUrl: !!process.env.EXPO_PUBLIC_SUPABASE_URL }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run3', hypothesisId: 'D' }) + '\n';
   fs.appendFileSync(logPath, logEntry);
 } catch (e) {
   console.error('Failed to write log:', e);
 }
 // #endregion
 
-const baseURL = process.env.BASE_URL 
+const baseURL = process.env.BASE_URL
   || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
   || 'http://localhost:8081';
 
 // #region agent log
 try {
-  const logEntry = JSON.stringify({location:'playwright.config.ts:30',message:'baseURL calculated',data:{baseURL,baseUrlType:typeof baseURL,baseUrlLength:baseURL?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'D'}) + '\n';
+  const logEntry = JSON.stringify({ location: 'playwright.config.ts:30', message: 'baseURL calculated', data: { baseURL, baseUrlType: typeof baseURL, baseUrlLength: baseURL?.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run3', hypothesisId: 'D' }) + '\n';
   fs.appendFileSync(logPath, logEntry);
   console.log('[Playwright Config] baseURL:', baseURL);
 } catch (e) {
@@ -41,7 +41,7 @@ try {
 // #endregion
 
 export default defineConfig({
-  testDir: './e2e/web',
+  testDir: '.',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Modal,
     ScrollView,
     StyleSheet,
@@ -131,7 +132,10 @@ export default function ChoresScreen() {
             setAddCategory('その他');
             setAddFrequency('週1回');
             setAddAssignedTo('none');
-        } catch (_) { }
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert('エラー', e?.message ?? '追加に失敗しました');
+        }
     };
 
     if (!coupleId && profile) {
@@ -356,7 +360,14 @@ export default function ChoresScreen() {
                                 <Text style={{ color: theme.text }}>キャンセル</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: theme.primary }]}
+                                style={[
+                                    styles.modalButton,
+                                    styles.modalButtonPrimary,
+                                    {
+                                        backgroundColor: theme.primary,
+                                        opacity: (!addName.trim() || addChore.isPending) ? 0.5 : 1
+                                    }
+                                ]}
                                 onPress={handleAddChore}
                                 disabled={!addName.trim() || addChore.isPending}
                             >

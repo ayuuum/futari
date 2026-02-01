@@ -1,5 +1,9 @@
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/authStore';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import * as FileSystem from 'expo-file-system';
 import { router } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -13,12 +17,15 @@ import {
 } from 'react-native';
 
 export default function PrivacySettingsScreen() {
+    const [isExporting, setIsExporting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { profile, signOut } = useAuthStore();
     const [settings, setSettings] = useState({
         shareActivity: true,
         showLastSeen: true,
     });
 
-    const handleDeleteAccount = () => {
+    const handleDeleteAccount = async () => {
         Alert.alert(
             'アカウント削除',
             '本当にアカウントを削除しますか？この操作は取り消せません。すべてのデータが削除されます。',
@@ -27,31 +34,88 @@ export default function PrivacySettingsScreen() {
                 {
                     text: '削除する',
                     style: 'destructive',
-                    onPress: () => {
-                        // TODO: Implement account deletion
-                        Alert.alert('確認', 'アカウント削除のリクエストを受け付けました。');
+                    onPress: async () => {
+                        setIsDeleting(true);
+                        try {
+                            const { error } = await supabase.functions.invoke('delete-account');
+                            if (error) throw error;
+
+                            await signOut();
+                            Alert.alert('アカウント削除', 'アカウントを削除しました。');
+                            router.replace('/(auth)/login' as any);
+                        } catch (e: any) {
+                            console.error(e);
+                            Alert.alert('エラー', e?.message ?? 'アカウント削除に失敗しました');
+                        } finally {
+                            setIsDeleting(false);
+                        }
                     },
                 },
             ]
         );
     };
 
-    const handleExportData = () => {
-        Alert.alert(
-            'データエクスポート',
-            'あなたのデータをエクスポートします。メールでダウンロードリンクをお送りします。',
-            [
-                { text: 'キャンセル', style: 'cancel' },
-                {
-                    text: 'エクスポート',
-                    onPress: () => {
-                        // TODO: Implement data export
-                        Alert.alert('完了', 'エクスポートリンクをメールで送信しました。');
-                    },
-                },
-            ]
-        );
+    const handleExportData = async () => {
+        setIsExporting(true);
+        try {
+            if (Platform.OS === 'web') {
+                Alert.alert('通知', 'Web版では現在データエクスポートはサポートされていません。');
+                return;
+            }
+
+            // 1. Fetch all data
+            const coupleId = profile?.couple_id;
+
+            // Parallel fetch for efficiency
+            const [
+                { data: user },
+                { data: couple },
+                { data: expenses },
+                { data: chores },
+                { data: shopping },
+                { data: events },
+            ] = await Promise.all([
+                supabase.from('users').select('*').eq('id', profile!.id).single(),
+                coupleId ? supabase.from('couples').select('*').eq('id', coupleId).single() : { data: null },
+                coupleId ? supabase.from('expenses').select('*').eq('couple_id', coupleId) : { data: [] },
+                coupleId ? supabase.from('chores').select('*').eq('couple_id', coupleId) : { data: [] },
+                coupleId ? supabase.from('shopping_items').select('*').eq('couple_id', coupleId) : { data: [] },
+                coupleId ? supabase.from('calendar_events').select('*').eq('couple_id', coupleId) : { data: [] },
+            ]);
+
+            const exportData = {
+                user,
+                couple,
+                expenses,
+                chores,
+                shopping,
+                calendar_events: events,
+                exported_at: new Date().toISOString(),
+            };
+
+            // 2. Write to file
+            const fileUri = FileSystem.documentDirectory + 'futari_data_export.json';
+            await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(exportData, null, 2));
+
+            // 3. Share
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(fileUri, {
+                    mimeType: 'application/json',
+                    dialogTitle: 'Futari データをエクスポート',
+                    UTI: 'public.json',
+                });
+            } else {
+                Alert.alert('エラー', '共有機能が利用できません');
+            }
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert('エラー', e?.message ?? 'エクスポートに失敗しました');
+        } finally {
+            setIsExporting(false);
+        }
     };
+
+
 
     return (
         <View style={styles.container}>
