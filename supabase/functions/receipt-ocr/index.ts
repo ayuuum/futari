@@ -28,9 +28,10 @@ Deno.serve(async (req) => {
                 role: "system",
                 content: `あなたはレシート読み取りアシスタントです。画像は日本のレシートです。
 以下をJSON形式でだけ答えてください。他は書かないでください。
-{"amount": 合計金額の数値（円）、"description": 店名または簡潔な内容（日本語）、"categoryId": カテゴリid}
+{"amount": 合計金額の数値（円）、"description": 店名または簡潔な内容（日本語）、"categoryId": カテゴリid, "date": "YYYY-MM-DD"}
 カテゴリは次から1つ選ぶ: food, utilities, rent, entertainment, daily, transport, medical, other
-金額が読めない場合は0、店名が読めない場合は"レシート"、カテゴリは内容から推測して選んでください。`,
+金額が読めない場合は0、店名が読めない場合は"レシート"、カテゴリは内容から推測して選んでください。
+日付はレシートに印字された購入日・取引日を優先し、読めない場合は今日の日付（日本時間）を使ってください。`,
             },
             {
                 role: "user",
@@ -41,12 +42,14 @@ Deno.serve(async (req) => {
             },
         ], { max_tokens: 200 });
         const trimmed = content.replace(/```json?\s*|\s*```/g, "").trim();
-        const parsed = JSON.parse(trimmed) as { amount?: number; description?: string; categoryId?: string };
+        const parsed = JSON.parse(trimmed) as { amount?: number; description?: string; categoryId?: string; date?: string };
         const amount = typeof parsed.amount === "number" ? parsed.amount : 0;
         const description = typeof parsed.description === "string" ? parsed.description.slice(0, 200) : "レシート";
         const valid = ["food", "utilities", "rent", "entertainment", "daily", "transport", "medical", "other"];
         const categoryId = parsed.categoryId && valid.includes(parsed.categoryId) ? parsed.categoryId : "other";
-        return jsonResponse({ amount, description, categoryId });
+        const today = new Date().toISOString().slice(0, 10);
+        const date = typeof parsed.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : today;
+        return jsonResponse({ amount, description, categoryId, date });
     } catch (e) {
         console.error(e);
         return jsonResponse({ error: String(e) }, 500);

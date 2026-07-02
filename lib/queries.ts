@@ -117,6 +117,21 @@ export function useAddExpense() {
   });
 }
 
+export function useAddExpensesBulk() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ( rows: ExpenseInsert[] ) => {
+      if (rows.length === 0) return [];
+      const { data, error } = await supabase.from('expenses').insert(rows).select();
+      if (error) throw error;
+      return data ?? [];
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['expenses'] });
+    },
+  });
+}
+
 // ----- Chores -----
 export function useChores( coupleId: string | null ) {
   return useQuery({

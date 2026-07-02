@@ -21,7 +21,7 @@ export async function suggestCategory(description: string): Promise<CategoryId> 
     return id as CategoryId;
 }
 
-export type ReceiptOcrResult = { amount: number; description: string; categoryId: CategoryId };
+export type ReceiptOcrResult = { amount: number; description: string; categoryId: CategoryId; date: string };
 
 export async function scanReceipt(imageBase64: string): Promise<ReceiptOcrResult> {
     const { data, error } = await supabase.functions.invoke<ReceiptOcrResult & { error?: string }>(
@@ -30,10 +30,12 @@ export async function scanReceipt(imageBase64: string): Promise<ReceiptOcrResult
     );
     if (error) throw error;
     if (data?.error && !data?.amount) throw new Error(data.error);
+    const today = new Date().toISOString().slice(0, 10);
     return {
         amount: data?.amount ?? 0,
         description: data?.description ?? 'レシート',
         categoryId: (data?.categoryId ?? 'other') as CategoryId,
+        date: data?.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date) ? data.date : today,
     };
 }
 

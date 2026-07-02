@@ -104,6 +104,23 @@ const createStyles = (theme: ThemeColors, isDark: boolean) => StyleSheet.create(
         paddingVertical: 12,
         gap: 8,
     },
+    bulkLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 16,
+        marginBottom: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        gap: 8,
+    },
+    bulkLinkText: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
     categoryChip: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -195,7 +212,8 @@ export default function ExpensesScreen() {
     const { profile, partner } = useAuthStore();
     const coupleId = profile?.couple_id ?? null;
     const myId = profile?.id ?? '';
-    const { data: expenses = [], isLoading } = useExpenses(coupleId);
+    const { data, isPending } = useExpenses(coupleId);
+    const expenses = data ?? [];
 
     const formatCurrency = (amount: number) => amount.toLocaleString('ja-JP');
 
@@ -243,7 +261,7 @@ export default function ExpensesScreen() {
             </View>
         );
     }
-    if (isLoading) {
+    if (isPending) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator size="large" color={theme.primary} testID="loading" />
@@ -251,9 +269,8 @@ export default function ExpensesScreen() {
         );
     }
 
-    return (
-        <View style={styles.container}>
-            {/* Monthly Summary */}
+    const listHeader = (
+        <>
             <View style={styles.summarySection}>
                 <Text style={styles.summaryLabel}>今月の支出</Text>
                 <Text style={styles.summaryAmount}>¥{formatCurrency(monthlySummary.total)}</Text>
@@ -273,7 +290,6 @@ export default function ExpensesScreen() {
                     </View>
                 </View>
 
-                {/* Category Bar */}
                 {monthlySummary.byCategory.length > 0 && (
                     <View style={styles.categoryBar}>
                         {monthlySummary.byCategory.map((cat, index) => (
@@ -294,48 +310,60 @@ export default function ExpensesScreen() {
                 )}
             </View>
 
-            {/* Category Filter */}
-            <View>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.categoryFilter}
-                    contentContainerStyle={styles.categoryFilterContent}
-                >
-                    {categories.map((cat) => (
-                        <TouchableOpacity
-                            key={cat.id}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoryFilter}
+                contentContainerStyle={styles.categoryFilterContent}
+            >
+                {categories.map((cat) => (
+                    <TouchableOpacity
+                        key={cat.id}
+                        style={[
+                            styles.categoryChip,
+                            selectedCategory === cat.id && styles.categoryChipActive,
+                        ]}
+                        onPress={() => setSelectedCategory(cat.id)}
+                    >
+                        <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                        <Text
                             style={[
-                                styles.categoryChip,
-                                selectedCategory === cat.id && styles.categoryChipActive,
+                                styles.categoryText,
+                                selectedCategory === cat.id && styles.categoryTextActive,
                             ]}
-                            onPress={() => setSelectedCategory(cat.id)}
                         >
-                            <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
-                            <Text
-                                style={[
-                                    styles.categoryText,
-                                    selectedCategory === cat.id && styles.categoryTextActive,
-                                ]}
-                            >
-                                {cat.name}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
+                            {cat.name}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
 
-            {/* Expense List */}
+            <Link href="/expenses/bulk-receipts" asChild>
+                <TouchableOpacity
+                    style={[styles.bulkLink, { borderColor: theme.secondary, backgroundColor: theme.card }]}
+                    testID="bulk-receipts-link"
+                >
+                    <Text style={{ fontSize: 18 }}>📸</Text>
+                    <Text style={[styles.bulkLinkText, { color: theme.secondary }]}>
+                        月末レシートをまとめて登録
+                    </Text>
+                </TouchableOpacity>
+            </Link>
+        </>
+    );
+
+    return (
+        <View style={styles.container}>
             <FlatList
                 data={filteredExpenses}
                 renderItem={renderExpenseItem}
                 keyExtractor={(item) => item.id}
                 style={styles.expenseList}
                 contentContainerStyle={styles.expenseListContent}
+                ListHeaderComponent={listHeader}
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* FAB */}
             <Link href="/expenses/add" asChild>
                 <TouchableOpacity style={styles.fab} testID="add-expense-button">
                     <Text style={styles.fabText}>+</Text>

@@ -88,9 +88,14 @@ export default function AddExpenseScreen() {
                 date: entryDate,
                 is_shared: isShared,
             });
-            Alert.alert('完了', '支出を記録しました！', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            // Web では Alert.alert の onPress が動かないため、先に画面遷移する
+            if (Platform.OS === 'web') {
+                router.replace('/(tabs)/expenses');
+            } else {
+                Alert.alert('完了', '支出を記録しました！', [
+                    { text: 'OK', onPress: () => router.back() },
+                ]);
+            }
         } catch (e: any) {
             Alert.alert('エラー', e?.message ?? '保存に失敗しました');
         }
@@ -120,6 +125,7 @@ export default function AddExpenseScreen() {
             setAmount(String(parsed.amount));
             setDescription(parsed.description);
             setSelectedCategory(parsed.categoryId as CategoryId);
+            setEntryDate(parsed.date);
         } catch (e: any) {
             Alert.alert('AI機能', e?.message ?? 'レシートの読み取りに失敗しました。');
         }

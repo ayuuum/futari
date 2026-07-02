@@ -51,7 +51,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 export const signInWithGoogle = async () => {
-    const redirectUrl = Linking.createURL('/(auth)/login');
+    const redirectUrl = Linking.createURL('/callback');
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
